@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geo Master v1.0 - Full Edition</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-light: #f8fafc;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --border-color: #334155;
+            --modal-bg: #1e293b;
+            --font-family: 'Inter', 'Tajawal', sans-serif;
+        }
+
+        body.light-mode {
+            --bg-dark: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-light: #0f172a;
+            --border-color: #cbd5e1;
+            --modal-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            border-bottom: 2px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #818cf8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-board {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+
+        .settings-btn {
+            background-color: var(--border-color);
+            color: var(--text-light);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s, background-color 0.3s;
+            flex-shrink: 0;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(45deg);
+            background-color: var(--primary);
+            color: #fff;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 0.8rem;
+            background-color: var(--card-bg);
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-btn {
+            background-color: var(--border-color);
+            color: var(--text-light);
+            border: none;
+            padding: 0.6rem 0.8rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            flex: 1 1 auto;
+            max-width: 160px;
+            text-align: center;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: var(--primary);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        main {
+            flex: 1;
+            padding: 1.5rem 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .game-section {
+            display: none;
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .game-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 0.8rem 0;
+            font-size: 1rem;
+            background-color: var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+        }
+
+        .stat-item span {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        .best-performance-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .best-performance-card h3 {
+            color: #818cf8;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .perf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .perf-item {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 0.5rem;
+            border-radius: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .perf-item .icon { font-size: 1.4rem; }
+        .perf-item .title { font-size: 0.8rem; opacity: 0.8; }
+        .perf-item .value { font-size: 1rem; font-weight: bold; color: var(--accent); }
+
+        #map {
+            height: 380px;
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 1rem;
+            z-index: 1;
+            background-color: #aadaff;
+        }
+
+        .vector-map-display {
+            width: 100%;
+            height: 280px;
+            background-color: var(--bg-dark);
+            border-radius: 15px;
+            border: 2px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            margin-top: 0.8rem;
+        }
+
+        .vector-map-display img {
+            max-width: 100%;
+            max-height: 100%;
+            filter: drop-shadow(0px 0px 10px rgba(99, 102, 241, 0.4)) invert(0.2) sepia(1) saturate(5) hue-rotate(200deg);
+            object-fit: contain;
+        }
+
+        .quiz-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .flag-img {
+            width: 160px;
+            height: 105px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 2px solid var(--border-color);
+        }
+
+        .emoji-hint {
+            font-size: 2.8rem;
+            letter-spacing: 6px;
+            background: var(--border-color);
+            padding: 0.8rem 1.5rem;
+            border-radius: 20px;
+            word-break: break-all;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            width: 100%;
+            max-width: 650px;
+            margin-top: 0.8rem;
+        }
+
+        .options-grid.grid-6 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .map-options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 1rem;
+        }
+
+        .map-option-card {
+            background-color: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            height: 150px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .map-option-card img {
+            max-width: 85%;
+            max-height: 85%;
+            object-fit: contain;
+            filter: drop-shadow(0px 0px 6px rgba(255,255,255,0.2)) invert(0.1) hue-rotate(180deg);
+        }
+
+        .map-option-card:hover {
+            transform: scale(1.03);
+            border-color: var(--primary);
+        }
+
+        .map-option-card.correct { border-color: var(--accent) !important; background-color: rgba(16, 185, 129, 0.15); }
+        .map-option-card.wrong { border-color: var(--danger) !important; opacity: 0.5; }
+
+        .option-btn {
+            background-color: var(--border-color);
+            color: var(--text-light);
+            border: 2px solid var(--border-color);
+            padding: 0.8rem 0.5rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 55px;
+            word-break: break-word;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct { background-color: var(--accent) !important; color: #fff !important; }
+        .option-btn.wrong { background-color: var(--danger) !important; color: #fff !important; }
+
+        .option-btn img {
+            width: 70px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .feedback {
+            min-height: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 0.8rem;
+        }
+
+        .btn-next {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.8rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 0.8rem;
+            display: none;
+            font-weight: bold;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background-color: var(--modal-bg);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1rem;
+            background-color: var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.7rem 0.3rem;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+            opacity: 0.7;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            opacity: 1;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .settings-content {
+            padding: 1.2rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px dashed var(--border-color);
+            gap: 10px;
+        }
+
+        .setting-row label {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .setting-control select, .setting-control input[type="color"] {
+            padding: 0.4rem 0.6rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .setting-control input[type="color"] {
+            width: 45px;
+            height: 32px;
+            padding: 2px;
+        }
+
+        @media (max-width: 768px) {
+            #map { height: 300px; }
+            .options-grid.grid-6 { grid-template-columns: repeat(2, 1fr); }
+            .map-options-grid { grid-template-columns: repeat(2, 1fr); }
+            .emoji-hint { font-size: 2.2rem; padding: 0.6rem 1rem; }
+        }
+
+        @media (max-width: 480px) {
+            header { padding: 0.8rem 1rem; }
+            .logo { font-size: 1.2rem; }
+            .score-board { font-size: 0.85rem; padding: 0.3rem 0.8rem; }
+            .nav-btn { font-size: 0.8rem; padding: 0.5rem 0.4rem; flex: 1 1 30%; }
+            main { padding: 1rem 0.5rem; }
+            .game-section { padding: 1rem 0.8rem; }
+            .options-grid, .options-grid.grid-6 { grid-template-columns: 1fr; }
+            .map-options-grid { grid-template-columns: 1fr; }
+            .map-option-card { height: 130px; }
+            .perf-grid { grid-template-columns: repeat(2, 1fr); }
+            #map { height: 260px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">🌍 Geo Master v1.0</div>
+        <div class="header-actions">
+            <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn" onclick="toggleModal(true)" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <nav>
+        <button class="nav-btn active" id="btn-mode-map" onclick="switchMode('map-mode', this)">🗺️ World Map</button>
+        <button class="nav-btn" id="btn-mode-m2n" onclick="switchMode('m2n-mode', this)">🗺️➔🔤 Map ➔ Name</button>
+        <button class="nav-btn" id="btn-mode-n2m" onclick="switchMode('n2m-mode', this)">🔤➔🗺️ Name ➔ Map</button>
+        <button class="nav-btn" id="btn-mode-name" onclick="switchMode('name-mode', this)">🚩 Guess Name</button>
+        <button class="nav-btn" id="btn-mode-flag" onclick="switchMode('flag-mode', this)">🌐 Guess Flag</button>
+        <button class="nav-btn" id="btn-mode-riddle" onclick="switchMode('riddle-mode', this)">🧩 Emoji Riddle</button>
+
+        <button class="nav-btn" id="btn-mode-cap2c" onclick="switchMode('cap2c-mode', this)">🏛️➔🌍 Capital ➔ Country</button>
+        <button class="nav-btn" id="btn-mode-c2cap" onclick="switchMode('c2cap-mode', this)">🌍➔🏛️ Country ➔ Capital</button>
+    </nav>
+
+    <main>
+        <section id="map-mode" class="game-section active">
+            <h2 id="title-map">Guess Country on Map</h2>
+            <div id="map"></div>
+            <div id="map-feedback" class="feedback"></div>
+            <button id="map-next" class="btn-next" onclick="initMapGame()">New Country 🔄</button>
+        </section>
+
+        <section id="m2n-mode" class="game-section">
+            <h2 id="title-m2n">Guess Name from Map</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-m2n">Current Streak</span>: 🔥 <span id="m2n-streak">0</span></div>
+            </div>
+            <p id="sub-m2n">Which country is shown in this shape?</p>
+            <div class="vector-map-display">
+                <img id="m2n-map-img" src="" alt="Country Map Vector">
+            </div>
+            <div id="m2n-options" class="options-grid" style="margin: 1rem auto 0 auto;"></div>
+            <div id="m2n-feedback" class="feedback"></div>
+            <button id="m2n-next" class="btn-next" onclick="initM2NGame()">Next ➔</button>
+        </section>
+
+        <section id="n2m-mode" class="game-section">
+            <h2 id="title-n2m">Guess Map from Name</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-n2m">Current Streak</span>: 🔥 <span id="n2m-streak">0</span></div>
+            </div>
+            <p id="sub-n2m">Select the correct map shape for:</p>
+            <h1 id="n2m-target-name" style="color: #818cf8; margin: 0.5rem 0; font-size: 1.6rem;">---</h1>
+            <div id="n2m-options" class="map-options-grid"></div>
+            <div id="n2m-feedback" class="feedback"></div>
+            <button id="n2m-next" class="btn-next" onclick="initN2MGame()">Next ➔</button>
+        </section>
+
+        <section id="name-mode" class="game-section">
+            <h2 id="title-name">Guess Country Name</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-name">Current Streak</span>: 🔥 <span id="name-streak">0</span></div>
+            </div>
+            <p id="sub-name">Which country owns this flag?</p>
+            <div class="quiz-card">
+                <img id="quiz-flag" class="flag-img" src="" alt="Flag">
+                <div id="name-options" class="options-grid"></div>
+            </div>
+            <div id="name-feedback" class="feedback"></div>
+            <button id="name-next" class="btn-next" onclick="initNameGame()">Next ➔</button>
+        </section>
+
+        <section id="flag-mode" class="game-section">
+            <h2 id="title-flag">Guess Flag</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-flag">Current Streak</span>: 🔥 <span id="flag-streak">0</span></div>
+            </div>
+            <p id="sub-flag">Select the correct flag for:</p>
+            <h1 id="target-country-name" style="color: #818cf8; margin: 0.5rem 0; font-size: 1.5rem;">---</h1>
+            <div class="quiz-card">
+                <div id="flag-options" class="options-grid"></div>
+            </div>
+            <div id="flag-feedback" class="feedback"></div>
+            <button id="flag-next" class="btn-next" onclick="initFlagGame()">Next ➔</button>
+        </section>
+
+        <section id="riddle-mode" class="game-section">
+            <h2 id="title-riddle">Emoji Riddle 🧩</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-riddle">Current Streak</span>: 🔥 <span id="riddle-streak">0</span></div>
+            </div>
+            <p id="sub-riddle">Guess country from emojis & landmarks:</p>
+            <div class="quiz-card">
+                <div id="riddle-emojis" class="emoji-hint">❓❓❓</div>
+                <div id="riddle-options" class="options-grid"></div>
+            </div>
+            <div id="riddle-feedback" class="feedback"></div>
+            <button id="riddle-next" class="btn-next" onclick="initRiddleGame()">Next ➔</button>
+        </section>
+
+        <section id="cap2c-mode" class="game-section">
+            <h2 id="title-cap2c">Guess Country from Capital</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-cap2c">Current Streak</span>: 🔥 <span id="cap2c-streak">0</span></div>
+            </div>
+            <p id="sub-cap2c">Which country has this capital?</p>
+            <h1 id="cap2c-target-capital" style="color: #818cf8; margin: 0.5rem 0; font-size: 1.8rem;">---</h1>
+            <div class="quiz-card">
+                <div id="cap2c-options" class="options-grid"></div>
+            </div>
+            <div id="cap2c-feedback" class="feedback"></div>
+            <button id="cap2c-next" class="btn-next" onclick="initCap2CGame()">Next ➔</button>
+        </section>
+
+        <section id="c2cap-mode" class="game-section">
+            <h2 id="title-c2cap">Guess Capital from Country</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-c2cap">Current Streak</span>: 🔥 <span id="c2cap-streak">0</span></div>
+            </div>
+            <p id="sub-c2cap">What is the capital of this country?</p>
+            <h1 id="c2cap-target-country" style="color: #818cf8; margin: 0.5rem 0; font-size: 1.8rem;">---</h1>
+            <div class="quiz-card">
+                <div id="c2cap-options" class="options-grid"></div>
+            </div>
+            <div id="c2cap-feedback" class="feedback"></div>
+            <button id="c2cap-next" class="btn-next" onclick="initC2CapGame()">Next ➔</button>
+        </section>
+
+        <div class="best-performance-card">
+            <h3 id="title-dash">🏆 Best Performance Dashboard</h3>
+            <div class="perf-grid">
+                <div class="perf-item">
+                    <span class="icon">🗺️</span>
+                    <span class="title" id="dash-lbl-map">World Map</span>
+                    <span class="value" id="dash-best-map">-</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🗺️➔🔤</span>
+                    <span class="title" id="dash-lbl-m2n">Map ➔ Name</span>
+                    <span class="value" id="dash-best-m2n">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🔤➔🗺️</span>
+                    <span class="title" id="dash-lbl-n2m">Name ➔ Map</span>
+                    <span class="value" id="dash-best-n2m">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🚩</span>
+                    <span class="title" id="dash-lbl-name">Guess Name</span>
+                    <span class="value" id="dash-best-name">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🌐</span>
+                    <span class="title" id="dash-lbl-flag">Guess Flag</span>
+                    <span class="value" id="dash-best-flag">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🧩</span>
+                    <span class="title" id="dash-lbl-riddle">Emoji Riddle</span>
+                    <span class="value" id="dash-best-riddle">0 streak</span>
+                </div>
+                
+                <div class="perf-item">
+                    <span class="icon">🏛️➔🌍</span>
+                    <span class="title" id="dash-lbl-cap2c">Capital ➔ Country</span>
+                    <span class="value" id="dash-best-cap2c">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">🌍➔🏛️</span>
+                    <span class="title" id="dash-lbl-c2cap">Country ➔ Capital</span>
+                    <span class="value" id="dash-best-c2cap">0 streak</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">⚙️ Game Settings</h3>
+                <button class="close-modal-btn" onclick="toggleModal(false)">✖</button>
+            </div>
+            
+            <div class="settings-tabs">
+                <button class="tab-btn active" id="tab-btn-global" onclick="switchTab('global')">Global 🌐</button>
+                <button class="tab-btn" id="tab-btn-map" onclick="switchTab('map')">Map 🗺️</button>
+                <button class="tab-btn" id="tab-btn-quiz" onclick="switchTab('quiz')">Options 🧩</button>
+            </div>
+
+            <div class="settings-content">
+                <div class="tab-pane active" id="pane-global">
+                    <div class="setting-row">
+                        <label id="lbl-lang">Language</label>
+                        <div class="setting-control">
+                            <select id="cfg-lang" onchange="updateSettings()">
+                                <option value="en">English</option>
+                                <option value="ar">العربية</option>
+                                <option value="fr">Français</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label id="lbl-theme">Theme</label>
+                        <div class="setting-control">
+                            <select id="cfg-theme" onchange="updateSettings()">
+                                <option value="dark">Dark Mode</option>
+                                <option value="light">Light Mode</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="pane-map">
+                    <div class="setting-row">
+                        <label id="lbl-max-zoom">Max Zoom In Level</label>
+                        <div class="setting-control">
+                            <select id="cfg-max-zoom" onchange="updateSettings()">
+                                <option value="3">3 (Low)</option>
+                                <option value="4" selected>4 (Medium)</option>
+                                <option value="5">5 (High)</option>
+                                <option value="6">6 (Very High)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label id="lbl-min-zoom">Min Zoom Out Level</label>
+                        <div class="setting-control">
+                            <select id="cfg-min-zoom" onchange="updateSettings()">
+                                <option value="1" selected>1 (Full World View)</option>
+                                <option value="2">2 (Balanced)</option>
+                                <option value="3">3 (Close View)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label id="lbl-color-near">Near Target Dot Color</label>
+                        <div class="setting-control">
+                            <input type="color" id="cfg-color-near" value="#10b981" onchange="updateSettings()">
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <label id="lbl-color-far">Far Target Dot Color</label>
+                        <div class="setting-control">
+                            <input type="color" id="cfg-color-far" value="#ef4444" onchange="updateSettings()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="pane-quiz">
+                    <div class="setting-row">
+                        <label id="lbl-options-count">Options Count per Quiz</label>
+                        <div class="setting-control">
+                            <select id="cfg-options-count" onchange="updateSettings()">
+                                <option value="4">4 Options</option>
+                                <option value="6">6 Options</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // جدول الدول الشامل يحتوي على بيانات العاصمة بجميع اللغات
+        const countries = [
+            { name: "مصر", nameEn: "Egypt", nameFr: "Égypte", capital: "القاهرة", capitalEn: "Cairo", capitalFr: "Le Caire", code: "eg", lat: 26.8206, lng: 30.8025, emoji: "🔺 🐫 🏛️" },
+            { name: "السعودية", nameEn: "Saudi Arabia", nameFr: "Arabie Saoudite", capital: "الرياض", capitalEn: "Riyadh", capitalFr: "Riyad", code: "sa", lat: 23.8859, lng: 45.0792, emoji: "🌴 🕋 🏜️" },
+            { name: "الإمارات", nameEn: "UAE", nameFr: "Émirats Arabes Unis", capital: "أبوظبي", capitalEn: "Abu Dhabi", capitalFr: "Abou Dabi", code: "ae", lat: 23.4241, lng: 53.8478, emoji: "🏙️ 🏎️ 🦅" },
+            { name: "العراق", nameEn: "Iraq", nameFr: "Irak", capital: "بغداد", capitalEn: "Baghdad", capitalFr: "Bagdad", code: "iq", lat: 33.2232, lng: 43.6793, emoji: "🌴 📜 🏛️" },
+            { name: "المغرب", nameEn: "Morocco", nameFr: "Maroc", capital: "الرباط", capitalEn: "Rabat", capitalFr: "Rabat", code: "ma", lat: 31.7917, lng: -7.0926, emoji: "🍵 🏰 🏔️" },
+            { name: "الجزائر", nameEn: "Algeria", nameFr: "Algérie", capital: "الجزائر", capitalEn: "Algiers", capitalFr: "Alger", code: "dz", lat: 28.0339, lng: 1.6596, emoji: "🏜️ 🕌 🌴" },
+            { name: "تونس", nameEn: "Tunisia", nameFr: "Tunisie", capital: "تونس", capitalEn: "Tunis", capitalFr: "Tunis", code: "tn", lat: 33.8869, lng: 9.5375, emoji: "🏖️ 🏛️ 🏺" },
+            { name: "الأردن", nameEn: "Jordan", nameFr: "Jordanie", capital: "عمان", capitalEn: "Amman", capitalFr: "Amman", code: "jo", lat: 30.5852, lng: 36.2384, emoji: "🏛️ 🏜️ 🧂" },
+            { name: "لبنان", nameEn: "Lebanon", nameFr: "Liban", capital: "بيروت", capitalEn: "Beirut", capitalFr: "Beyrouth", code: "lb", lat: 33.8547, lng: 35.8623, emoji: "🌲 🏔️ 🥗" },
+            { name: "سلطنة عمان", nameEn: "Oman", nameFr: "Oman", capital: "مسقط", capitalEn: "Muscat", capitalFr: "Mascate", code: "om", lat: 21.5126, lng: 55.9233, emoji: "🏰 ⛵ 🏜️" },
+            { name: "قطر", nameEn: "Qatar", nameFr: "Qatar", capital: "الدوحة", capitalEn: "Doha", capitalFr: "Doha", code: "qa", lat: 25.3548, lng: 51.1839, emoji: "🏙️ ⚽ 🐪" },
+            { name: "الكويت", nameEn: "Kuwait", nameFr: "Koweït", capital: "الكويت", capitalEn: "Kuwait City", capitalFr: "Koweït", code: "kw", lat: 29.3117, lng: 47.4818, emoji: "🏙️ 🛢️ 🗼" },
+            { name: "البحرين", nameEn: "Bahrain", nameFr: "Bahreïn", capital: "المنامة", capitalEn: "Manama", capitalFr: "Manama", code: "bh", lat: 26.0667, lng: 50.5577, emoji: "🏎️ 🏝️ 🏙️" },
+            { name: "اليمن", nameEn: "Yemen", nameFr: "Yémen", capital: "صنعاء", capitalEn: "Sana'a", capitalFr: "Sanaa", code: "ye", lat: 15.5527, lng: 48.5164, emoji: "☕ 🏰 ⛰️" },
+            { name: "السودان", nameEn: "Sudan", nameFr: "Soudan", capital: "الخرطوم", capitalEn: "Khartoum", capitalFr: "Khartoum", code: "sd", lat: 12.8628, lng: 30.2176, emoji: "🌊 🔺 🏜️" },
+            { name: "ليبيا", nameEn: "Libya", nameFr: "Libye", capital: "طرابلس", capitalEn: "Tripoli", capitalFr: "Tripoli", code: "ly", lat: 26.3351, lng: 17.2283, emoji: "🏛️ 🏜️ 🛢️" },
+            { name: "فلسطين", nameEn: "Palestine", nameFr: "Palestine", capital: "القدس", capitalEn: "Jerusalem", capitalFr: "Jérusalem", code: "ps", lat: 31.9522, lng: 35.2332, emoji: "🕌 🕊️ 🫒" },
+            { name: "سوريا", nameEn: "Syria", nameFr: "Syrie", capital: "دمشق", capitalEn: "Damascus", capitalFr: "Damas", code: "sy", lat: 34.8021, lng: 38.9968, emoji: "🏛️ 🌹 📜" },
+            { name: "فرنسا", nameEn: "France", nameFr: "France", capital: "باريس", capitalEn: "Paris", capitalFr: "Paris", code: "fr", lat: 46.2276, lng: 2.2137, emoji: "🥖 🗼 🎨" },
+            { name: "اليابان", nameEn: "Japan", nameFr: "Japon", capital: "طوكيو", capitalEn: "Tokyo", capitalFr: "Tokyo", code: "jp", lat: 36.2048, lng: 138.2529, emoji: "🌸 🍣 🗾" },
+            { name: "البرازيل", nameEn: "Brazil", nameFr: "Brésil", capital: "برازيليا", capitalEn: "Brasília", capitalFr: "Brasilia", code: "br", lat: -14.2350, lng: -51.9253, emoji: "⚽ 🌴 🦜" },
+            { name: "إيطاليا", nameEn: "Italy", nameFr: "Italie", capital: "روما", capitalEn: "Rome", capitalFr: "Rome", code: "it", lat: 41.8719, lng: 12.5674, emoji: "🍕 🏛️ 🍝" },
+            { name: "الأرجنتين", nameEn: "Argentina", nameFr: "Argentine", capital: "بوينس آيرس", capitalEn: "Buenos Aires", capitalFr: "Buenos Aires", code: "ar", lat: -38.4161, lng: -63.6167, emoji: "🥩 ⚽ 🌞" },
+            { name: "أستراليا", nameEn: "Australia", nameFr: "Australie", capital: "كانبرا", capitalEn: "Canberra", capitalFr: "Canberra", code: "au", lat: -25.2744, lng: 133.7751, emoji: "🦘 🪃 🐨" },
+            { name: "كندا", nameEn: "Canada", nameFr: "Canada", capital: "أوتاوا", capitalEn: "Ottawa", capitalFr: "Ottawa", code: "ca", lat: 56.1304, lng: -106.3468, emoji: "🍁 🐻 🏒" },
+            { name: "الصين", nameEn: "China", nameFr: "Chine", capital: "بكين", capitalEn: "Beijing", capitalFr: "Pékin", code: "cn", lat: 35.8617, lng: 104.1954, emoji: "🐼 🐉 🥢" },
+            { name: "ألمانيا", nameEn: "Germany", nameFr: "Allemagne", capital: "برلين", capitalEn: "Berlin", capitalFr: "Berlin", code: "de", lat: 51.1657, lng: 10.4515, emoji: "🏰 🥨 🚗" },
+            { name: "الهند", nameEn: "India", nameFr: "Inde", capital: "نيودلهي", capitalEn: "New Delhi", capitalFr: "New Delhi", code: "in", lat: 20.5937, lng: 78.9629, emoji: "🕌 🥻 🛺" },
+            { name: "المملكة المتحدة", nameEn: "United Kingdom", nameFr: "Royaume-Uni", capital: "لندن", capitalEn: "London", capitalFr: "Londres", code: "gb", lat: 55.3781, lng: -3.4360, emoji: "👑 ☕ 🚌" },
+            { name: "الولايات المتحدة", nameEn: "United States", nameFr: "États-Unis", capital: "واشنطن", capitalEn: "Washington, D.C.", capitalFr: "Washington", code: "us", lat: 37.0902, lng: -95.7129, emoji: "🗽 🍔 🦅" },
+            { name: "إسبانيا", nameEn: "Spain", nameFr: "Espagne", capital: "مدريد", capitalEn: "Madrid", capitalFr: "Madrid", code: "es", lat: 40.4637, lng: -3.7492, emoji: "💃 🥘 🐂" },
+            { name: "روسيا", nameEn: "Russia", nameFr: "Russie", capital: "موسكو", capitalEn: "Moscow", capitalFr: "Moscou", code: "ru", lat: 61.5240, lng: 105.3188, emoji: "🪆 ❄️ 🐻" },
+            { name: "تركيا", nameEn: "Turkey", nameFr: "Turquie", capital: "أنقرة", capitalEn: "Ankara", capitalFr: "Ankara", code: "tr", lat: 38.9637, lng: 35.2433, emoji: "🥙 ☕ 🎈" }
+        ];
+
+        // القاموس اللغوي متعدد اللغات (دعم العربية، الإنجليزية، الفرنسية)
+        const i18n = {
+            ar: {
+                score: "إجمالي النقاط",
+                btnMap: "🗺️ خريطة العالم",
+                btnM2N: "🗺️➔🔤 الخريطة للاسم",
+                btnN2M: "🔤➔🗺️ الاسم للخريطة",
+                btnName: "🚩 تخمين الاسم",
+                btnFlag: "🌐 تخمين العلم",
+                btnRiddle: "🧩 تخمين اللغز",
+                btnCap2C: "🏛️➔🌍 العاصمة للدولة",
+                btnC2Cap: "🌍➔🏛️ الدولة للعاصمة",
+                titleMap: "تخمين الدولة على الخريطة",
+                titleM2N: "تخمين الاسم من الخريطة",
+                titleN2M: "تخمين الخريطة من الاسم",
+                titleName: "تخمين اسم الدولة",
+                titleFlag: "تخمين العلم",
+                titleRiddle: "لغز الإيموجي 🧩",
+                titleCap2C: "تخمين الدولة من العاصمة",
+                titleC2Cap: "تخمين العاصمة من الدولة",
+                subM2N: "أي دولة تمثل هذه الحدود الجغرافية المحددة؟",
+                subN2M: "اختر شكل الحدود الجغرافية المحددة للدولة التالية:",
+                subName: "ما هي الدولة صاحبة هذا العلم؟",
+                subFlag: "اختر العلم الصحيح للدولة التالية:",
+                subRiddle: "خمن الدولة من الإيموجيز والمعالم التالية:",
+                subCap2C: "ما هي الدولة التي عاصمتها:",
+                subC2Cap: "ما هي عاصمة الدولة التالية:",
+                streak: "التتابع الحالي",
+                dashTitle: "🏆 سِجل أفضل أداء لك في الألعاب",
+                attempts: "محاولات",
+                consecutive: "متتالي",
+                next: "التالي ➔",
+                newCountry: "دولة جديدة 🔄",
+                correct: "إجابة صحيحة!",
+                wrong: "خطأ! الإجابة الصحيحة هي:",
+                modalTitle: "⚙️ إعدادات اللعبة",
+                tabGlobal: "عامة 🌐",
+                tabMap: "الخريطة 🗺️",
+                tabQuiz: "الخيارات 🧩",
+                lblLang: "اللغة (Language)",
+                lblTheme: "المظهر (Theme)",
+                lblMaxZoom: "الحد الأقصى للتقريب",
+                lblMinZoom: "الحد الأقصى للتبعيد",
+                lblColorNear: "لون النقطة القريبة",
+                lblColorFar: "لون النقطة البعيدة",
+                lblOptionsCount: "عدد الخيارات في الأسئلة"
+            },
+            en: {
+                score: "Total Score",
+                btnMap: "🗺️ World Map",
+                btnM2N: "🗺️➔🔤 Map ➔ Name",
+                btnN2M: "🔤➔🗺️ Name ➔ Map",
+                btnName: "🚩 Guess Name",
+                btnFlag: "🌐 Guess Flag",
+                btnRiddle: "🧩 Emoji Riddle",
+                btnCap2C: "🏛️➔🌍 Capital ➔ Country",
+                btnC2Cap: "🌍➔🏛️ Country ➔ Capital",
+                titleMap: "Guess Country on Map",
+                titleM2N: "Guess Name from Map",
+                titleN2M: "Guess Map from Name",
+                titleName: "Guess Country Name",
+                titleFlag: "Guess Flag",
+                titleRiddle: "Emoji Riddle 🧩",
+                titleCap2C: "Guess Country from Capital",
+                titleC2Cap: "Guess Capital from Country",
+                subM2N: "Which country is represented by this vector shape?",
+                subN2M: "Select correct vector shape for:",
+                subName: "Which country owns this flag?",
+                subFlag: "Select the correct flag for:",
+                subRiddle: "Guess country from emojis & landmarks:",
+                subCap2C: "Which country has this capital?",
+                subC2Cap: "What is the capital of this country?",
+                streak: "Current Streak",
+                dashTitle: "🏆 Best Performance Dashboard",
+                attempts: "attempts",
+                consecutive: "streak",
+                next: "Next ➔",
+                newCountry: "New Country 🔄",
+                correct: "Correct Answer!",
+                wrong: "Wrong! Correct answer is:",
+                modalTitle: "⚙️ Game Settings",
+                tabGlobal: "Global 🌐",
+                tabMap: "Map 🗺️",
+                tabQuiz: "Options 🧩",
+                lblLang: "Language",
+                lblTheme: "Theme",
+                lblMaxZoom: "Max Zoom In Level",
+                lblMinZoom: "Min Zoom Out Level",
+                lblColorNear: "Near Target Dot Color",
+                lblColorFar: "Far Target Dot Color",
+                lblOptionsCount: "Options Count per Quiz"
+            },
+            fr: {
+                score: "Score Total",
+                btnMap: "🗺️ Carte",
+                btnM2N: "🗺️➔🔤 Carte ➔ Nom",
+                btnN2M: "🔤➔🗺️ Nom ➔ Carte",
+                btnName: "🚩 Trouver Nom",
+                btnFlag: "🌐 Trouver Drapeau",
+                btnRiddle: "🧩 Énigme Émoji",
+                btnCap2C: "🏛️➔🌍 Capitale ➔ Pays",
+                btnC2Cap: "🌍➔🏛️ Pays ➔ Capitale",
+                titleMap: "Devinez le pays sur la carte",
+                titleM2N: "Devinez le nom depuis la carte",
+                titleN2M: "Devinez la carte depuis le nom",
+                titleName: "Devinez le nom du pays",
+                titleFlag: "Devinez le drapeau",
+                titleRiddle: "Énigme Émoji 🧩",
+                titleCap2C: "Devinez le pays grâce à sa capitale",
+                titleC2Cap: "Devinez la capitale du pays",
+                subM2N: "Quel pays est représenté par cette forme ?",
+                subN2M: "Sélectionnez la forme correcte pour :",
+                subName: "À quel pays appartient ce drapeau ?",
+                subFlag: "Sélectionnez le bon drapeau pour :",
+                subRiddle: "Devinez le pays via ces émojis :",
+                subCap2C: "Quel pays a pour capitale :",
+                subC2Cap: "Quelle est la capitale de ce pays :",
+                streak: "Série Actuelle",
+                dashTitle: "🏆 Tableau des Meilleurs Scores",
+                attempts: "essais",
+                consecutive: "d'affilée",
+                next: "Suivant ➔",
+                newCountry: "Nouveau Pays 🔄",
+                correct: "Bonne réponse !",
+                wrong: "Faux ! La bonne réponse est :",
+                modalTitle: "⚙️ Paramètres du Jeu",
+                tabGlobal: "Général 🌐",
+                tabMap: "Carte 🗺️",
+                tabQuiz: "Options 🧩",
+                lblLang: "Langue (Language)",
+                lblTheme: "Thème",
+                lblMaxZoom: "Zoom Avant Max",
+                lblMinZoom: "Zoom Arrière Max",
+                lblColorNear: "Couleur Point Proche",
+                lblColorFar: "Couleur Point Éloigné",
+                lblOptionsCount: "Nombre d'options"
+            }
+        };
+
+        let settings = {
+            lang: localStorage.getItem('geo_lang') || 'en',
+            theme: localStorage.getItem('geo_theme') || 'dark',
+            maxZoom: parseInt(localStorage.getItem('geo_max_zoom')) || 4,
+            minZoom: parseInt(localStorage.getItem('geo_min_zoom')) || 1,
+            colorNear: localStorage.getItem('geo_color_near') || '#10b981',
+            colorFar: localStorage.getItem('geo_color_far') || '#ef4444',
+            optionsCount: parseInt(localStorage.getItem('geo_options_count')) || 4
+        };
+
+        let score = parseInt(localStorage.getItem('geo_score')) || 0;
+        let m2nStreak = 0, m2nBest = parseInt(localStorage.getItem('geo_m2n_best')) || 0;
+        let n2mStreak = 0, n2mBest = parseInt(localStorage.getItem('geo_n2m_best')) || 0;
+        let nameStreak = 0, nameBest = parseInt(localStorage.getItem('geo_name_best')) || 0;
+        let flagStreak = 0, flagBest = parseInt(localStorage.getItem('geo_flag_best')) || 0;
+        let riddleStreak = 0, riddleBest = parseInt(localStorage.getItem('geo_riddle_best')) || 0;
+        let cap2cStreak = 0, cap2cBest = parseInt(localStorage.getItem('geo_cap2c_best')) || 0;
+        let c2capStreak = 0, c2capBest = parseInt(localStorage.getItem('geo_c2cap_best')) || 0;
+        let bestMapAttempts = parseInt(localStorage.getItem('geo_map_best')) || null;
+
+        let map, targetMapCountry, mapAttempts = 0, mapMarkers = [];
+
+        function getCountryName(country) {
+            if (settings.lang === 'ar') return country.name;
+            if (settings.lang === 'fr') return country.nameFr;
+            return country.nameEn;
+        }
+
+        function getCapitalName(country) {
+            if (settings.lang === 'ar') return country.capital;
+            if (settings.lang === 'fr') return country.capitalFr;
+            return country.capitalEn;
+        }
+
+        // أداء عالي محسن لصور الخريطة المتجهة CDN
+        function getIsolatedMapUrl(code) {
+            return `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${code.toLowerCase()}/vector.svg`;
+        }
+
+        document.getElementById('cfg-lang').value = settings.lang;
+        document.getElementById('cfg-theme').value = settings.theme;
+        document.getElementById('cfg-max-zoom').value = settings.maxZoom;
+        document.getElementById('cfg-min-zoom').value = settings.minZoom;
+        document.getElementById('cfg-color-near').value = settings.colorNear;
+        document.getElementById('cfg-color-far').value = settings.colorFar;
+        document.getElementById('cfg-options-count').value = settings.optionsCount;
+
+        function applyLanguageAndTheme() {
+            const t = i18n[settings.lang] || i18n['en'];
+            
+            document.documentElement.lang = settings.lang;
+            document.documentElement.dir = settings.lang === 'ar' ? 'rtl' : 'ltr';
+
+            if(settings.theme === 'light') {
+                document.body.classList.add('light-mode');
+            } else {
+                document.body.classList.remove('light-mode');
+            }
+
+            document.getElementById('lbl-score').innerText = t.score;
+            document.getElementById('btn-mode-map').innerText = t.btnMap;
+            document.getElementById('btn-mode-m2n').innerText = t.btnM2N;
+            document.getElementById('btn-mode-n2m').innerText = t.btnN2M;
+            document.getElementById('btn-mode-name').innerText = t.btnName;
+            document.getElementById('btn-mode-flag').innerText = t.btnFlag;
+            document.getElementById('btn-mode-riddle').innerText = t.btnRiddle;
+            document.getElementById('btn-mode-cap2c').innerText = t.btnCap2C;
+            document.getElementById('btn-mode-c2cap').innerText = t.btnC2Cap;
+
+            document.getElementById('title-map').innerText = t.titleMap;
+            document.getElementById('title-m2n').innerText = t.titleM2N;
+            document.getElementById('title-n2m').innerText = t.titleN2M;
+            document.getElementById('title-name').innerText = t.titleName;
+            document.getElementById('title-flag').innerText = t.titleFlag;
+            document.getElementById('title-riddle').innerText = t.titleRiddle;
+            document.getElementById('title-cap2c').innerText = t.titleCap2C;
+            document.getElementById('title-c2cap').innerText = t.titleC2Cap;
+
+            document.getElementById('sub-m2n').innerText = t.subM2N;
+            document.getElementById('sub-n2m').innerText = t.subN2M;
+            document.getElementById('sub-name').innerText = t.subName;
+            document.getElementById('sub-flag').innerText = t.subFlag;
+            document.getElementById('sub-riddle').innerText = t.subRiddle;
+            document.getElementById('sub-cap2c').innerText = t.subCap2C;
+            document.getElementById('sub-c2cap').innerText = t.subC2Cap;
+
+            document.getElementById('lbl-streak-m2n').innerText = t.streak;
+            document.getElementById('lbl-streak-n2m').innerText = t.streak;
+            document.getElementById('lbl-streak-name').innerText = t.streak;
+            document.getElementById('lbl-streak-flag').innerText = t.streak;
+            document.getElementById('lbl-streak-riddle').innerText = t.streak;
+            document.getElementById('lbl-streak-cap2c').innerText = t.streak;
+            document.getElementById('lbl-streak-c2cap').innerText = t.streak;
+
+            document.getElementById('title-dash').innerText = t.dashTitle;
+            document.getElementById('dash-lbl-map').innerText = t.btnMap.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-m2n').innerText = t.btnM2N.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-n2m').innerText = t.btnN2M.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-name').innerText = t.btnName.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-flag').innerText = t.btnFlag.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-riddle').innerText = t.btnRiddle.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-cap2c').innerText = t.btnCap2C.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-c2cap').innerText = t.btnC2Cap.replace(/^[^\s]+\s/, '');
+
+            document.getElementById('modal-title').innerText = t.modalTitle;
+            document.getElementById('tab-btn-global').innerText = t.tabGlobal;
+            document.getElementById('tab-btn-map').innerText = t.tabMap;
+            document.getElementById('tab-btn-quiz').innerText = t.tabQuiz;
+
+            document.getElementById('lbl-lang').innerText = t.lblLang;
+            document.getElementById('lbl-theme').innerText = t.lblTheme;
+            document.getElementById('lbl-max-zoom').innerText = t.lblMaxZoom;
+            document.getElementById('lbl-min-zoom').innerText = t.lblMinZoom;
+            document.getElementById('lbl-color-near').innerText = t.lblColorNear;
+            document.getElementById('lbl-color-far').innerText = t.lblColorFar;
+            document.getElementById('lbl-options-count').innerText = t.lblOptionsCount;
+
+            updateDashboardUI();
+        }
+
+        function updateSettings() {
+            settings.lang = document.getElementById('cfg-lang').value;
+            settings.theme = document.getElementById('cfg-theme').value;
+            settings.maxZoom = parseInt(document.getElementById('cfg-max-zoom').value);
+            settings.minZoom = parseInt(document.getElementById('cfg-min-zoom').value);
+            settings.colorNear = document.getElementById('cfg-color-near').value;
+            settings.colorFar = document.getElementById('cfg-color-far').value;
+            settings.optionsCount = parseInt(document.getElementById('cfg-options-count').value);
+
+            localStorage.setItem('geo_lang', settings.lang);
+            localStorage.setItem('geo_theme', settings.theme);
+            localStorage.setItem('geo_max_zoom', settings.maxZoom);
+            localStorage.setItem('geo_min_zoom', settings.minZoom);
+            localStorage.setItem('geo_color_near', settings.colorNear);
+            localStorage.setItem('geo_color_far', settings.colorFar);
+            localStorage.setItem('geo_options_count', settings.optionsCount);
+
+            applyLanguageAndTheme();
+
+            if (map) {
+                map.setMinZoom(settings.minZoom);
+                map.setMaxZoom(settings.maxZoom);
+            }
+            
+            initM2NGame();
+            initN2MGame();
+            initNameGame();
+            initFlagGame();
+            initRiddleGame();
+            initCap2CGame();
+            initC2CapGame();
+        }
+
+        function toggleModal(show) {
+            document.getElementById('settings-modal').classList.toggle('active', show);
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+            document.getElementById(`tab-btn-${tab}`).classList.add('active');
+            document.getElementById(`pane-${tab}`).classList.add('active');
+        }
+
+        function updateDashboardUI() {
+            const t = i18n[settings.lang] || i18n['en'];
+            document.getElementById('score').innerText = score;
+            document.getElementById('dash-best-map').innerText = bestMapAttempts ? `${bestMapAttempts} ${t.attempts}` : '-';
+            document.getElementById('dash-best-m2n').innerText = `${m2nBest} ${t.consecutive}`;
+            document.getElementById('dash-best-n2m').innerText = `${n2mBest} ${t.consecutive}`;
+            document.getElementById('dash-best-name').innerText = `${nameBest} ${t.consecutive}`;
+            document.getElementById('dash-best-flag').innerText = `${flagBest} ${t.consecutive}`;
+            document.getElementById('dash-best-riddle').innerText = `${riddleBest} ${t.consecutive}`;
+            document.getElementById('dash-best-cap2c').innerText = `${cap2cBest} ${t.consecutive}`;
+            document.getElementById('dash-best-c2cap').innerText = `${c2capBest} ${t.consecutive}`;
+        }
+
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : { r: 0, g: 0, b: 0 };
+        }
+
+        function interpolateColor(colorNearHex, colorFarHex, ratio) {
+            let c1 = hexToRgb(colorNearHex);
+            let c2 = hexToRgb(colorFarHex);
+            let r = Math.round(c1.r + ratio * (c2.r - c1.r));
+            let g = Math.round(c1.g + ratio * (c2.g - c1.g));
+            let b = Math.round(c1.b + ratio * (c2.b - c1.b));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function getFlagUrl(code) { return `https://flagcdn.com/w320/${code.toLowerCase()}.png`; }
+        function getRandomCountry() { return countries[Math.floor(Math.random() * countries.length)]; }
+
+        function getOptions(correct, countOverride) {
+            let count = countOverride || settings.optionsCount;
+            let options = [correct];
+            while(options.length < count) {
+                let r = getRandomCountry();
+                if(!options.find(o => o.code === r.code)) options.push(r);
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function addScore(pts) {
+            score += pts;
+            document.getElementById('score').innerText = score;
+            localStorage.setItem('geo_score', score);
+        }
+
+        function switchMode(modeId, btnElement) {
+            document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(modeId).classList.add('active');
+            if (btnElement) btnElement.classList.add('active');
+
+            if (modeId === 'map-mode') {
+                if (!map) initLeafletMap();
+                else setTimeout(() => map.invalidateSize(), 200);
+            }
+        }
+
+        // --- 1. MAIN MAP GAME ---
+        function initLeafletMap() {
+            map = L.map('map', {
+                minZoom: settings.minZoom,
+                maxZoom: settings.maxZoom,
+                maxBounds: [[-85, -180], [85, 180]],
+                maxBoundsViscosity: 1.0
+            }).setView([20, 0], 2);
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                subdomains: 'abcd'
+            }).addTo(map);
+
+            fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson')
+                .then(res => res.json())
+                .then(data => {
+                    L.geoJSON(data, { style: { color: "#334155", weight: 1.5, fillColor: "transparent", fillOpacity: 0 } }).addTo(map);
+                });
+
+            map.on('click', onMapClick);
+            initMapGame();
+        }
+
+        function initMapGame() {
+            targetMapCountry = getRandomCountry();
+            mapAttempts = 0;
+            document.getElementById('map-feedback').innerText = "";
+            document.getElementById('map-next').style.display = 'none';
+            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers = [];
+            if(map) map.setView([20, 0], 2);
+        }
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function onMapClick(e) {
+            if (document.getElementById('map-next').style.display === 'inline-block') return;
+
+            mapAttempts++;
+            const clickLat = e.latlng.lat, clickLng = e.latlng.lng;
+            const dist = getDistance(clickLat, clickLng, targetMapCountry.lat, targetMapCountry.lng);
+
+            let maxDist = 8000;
+            let ratio = Math.min(dist / maxDist, 1);
+            let color = interpolateColor(settings.colorNear, settings.colorFar, ratio);
+
+            let circle = L.circleMarker([clickLat, clickLng], {
+                color: color, fillColor: color, fillOpacity: 0.85, radius: 8
+            }).addTo(map);
+            mapMarkers.push(circle);
+
+            const t = i18n[settings.lang] || i18n['en'];
+            if (dist < 500) {
+                let pts = Math.max(10, 100 - (mapAttempts - 1) * 15);
+                addScore(pts);
+
+                if(!bestMapAttempts || mapAttempts < bestMapAttempts) {
+                    bestMapAttempts = mapAttempts;
+                    localStorage.setItem('geo_map_best', bestMapAttempts);
+                    updateDashboardUI();
+                }
+
+                document.getElementById('map-feedback').innerHTML = `<span style="color:var(--accent)">${t.correct} (${getCountryName(targetMapCountry)}). +${pts}!</span>`;
+                document.getElementById('map-next').innerText = t.newCountry;
+                document.getElementById('map-next').style.display = 'inline-block';
+                
+                L.marker([targetMapCountry.lat, targetMapCountry.lng]).addTo(map)
+                    .bindPopup(getCountryName(targetMapCountry)).openPopup();
+            } else {
+                document.getElementById('map-feedback').innerHTML = `<span style="color:${color}">~${Math.round(dist)} km</span>`;
+            }
+        }
+
+        // --- 2. MAP TO NAME GAME ---
+        let currentM2NTarget;
+        function initM2NGame() {
+            currentM2NTarget = getRandomCountry();
+            const options = getOptions(currentM2NTarget);
+
+            document.getElementById('m2n-map-img').src = getIsolatedMapUrl(currentM2NTarget.code);
+            document.getElementById('m2n-feedback').innerText = "";
+            document.getElementById('m2n-next').style.display = 'none';
+
+            const container = document.getElementById('m2n-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = () => checkM2NAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkM2NAnswer(btn, code) {
+            disableButtons('m2n-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentM2NTarget.code) {
+                btn.classList.add('correct');
+                addScore(20);
+                m2nStreak++;
+                if(m2nStreak > m2nBest) {
+                    m2nBest = m2nStreak;
+                    localStorage.setItem('geo_m2n_best', m2nBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('m2n-feedback').innerText = `${t.correct} +20`;
+            } else {
+                btn.classList.add('wrong');
+                m2nStreak = 0;
+                document.getElementById('m2n-feedback').innerText = `${t.wrong} ${getCountryName(currentM2NTarget)}`;
+            }
+            document.getElementById('m2n-streak').innerText = m2nStreak;
+            document.getElementById('m2n-next').innerText = t.next;
+            document.getElementById('m2n-next').style.display = 'inline-block';
+        }
+
+        // --- 3. NAME TO MAP GAME ---
+        let currentN2MTarget;
+        function initN2MGame() {
+            currentN2MTarget = getRandomCountry();
+            const options = getOptions(currentN2MTarget, 4);
+
+            document.getElementById('n2m-target-name').innerText = getCountryName(currentN2MTarget);
+            document.getElementById('n2m-feedback').innerText = "";
+            document.getElementById('n2m-next').style.display = 'none';
+
+            const container = document.getElementById('n2m-options');
+            container.innerHTML = "";
+
+            options.forEach((opt) => {
+                const card = document.createElement('div');
+                card.className = 'map-option-card';
+                card.onclick = () => checkN2MAnswer(card, opt.code);
+
+                const img = document.createElement('img');
+                img.src = getIsolatedMapUrl(opt.code);
+                img.alt = "Country Map";
+
+                card.appendChild(img);
+                container.appendChild(card);
+            });
+        }
+
+        function checkN2MAnswer(selectedCard, code) {
+            const cards = document.querySelectorAll('.map-option-card');
+            cards.forEach(c => c.style.pointerEvents = 'none');
+
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentN2MTarget.code) {
+                selectedCard.classList.add('correct');
+                addScore(25);
+                n2mStreak++;
+                if(n2mStreak > n2mBest) {
+                    n2mBest = n2mStreak;
+                    localStorage.setItem('geo_n2m_best', n2mBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('n2m-feedback').innerText = `${t.correct} +25`;
+            } else {
+                selectedCard.classList.add('wrong');
+                n2mStreak = 0;
+                document.getElementById('n2m-feedback').innerText = `${t.wrong} ${getCountryName(currentN2MTarget)}`;
+            }
+            document.getElementById('n2m-streak').innerText = n2mStreak;
+            document.getElementById('n2m-next').innerText = t.next;
+            document.getElementById('n2m-next').style.display = 'inline-block';
+        }
+
+        // --- 4. GUESS NAME GAME ---
+        let currentNameTarget;
+        function initNameGame() {
+            currentNameTarget = getRandomCountry();
+            const options = getOptions(currentNameTarget);
+
+            document.getElementById('quiz-flag').src = getFlagUrl(currentNameTarget.code);
+            document.getElementById('name-feedback').innerText = "";
+            document.getElementById('name-next').style.display = 'none';
+
+            const container = document.getElementById('name-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = () => checkNameAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkNameAnswer(btn, code) {
+            disableButtons('name-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentNameTarget.code) {
+                btn.classList.add('correct');
+                addScore(20);
+                nameStreak++;
+                if(nameStreak > nameBest) {
+                    nameBest = nameStreak;
+                    localStorage.setItem('geo_name_best', nameBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('name-feedback').innerText = `${t.correct} +20`;
+            } else {
+                btn.classList.add('wrong');
+                nameStreak = 0;
+                document.getElementById('name-feedback').innerText = `${t.wrong} ${getCountryName(currentNameTarget)}`;
+            }
+            document.getElementById('name-streak').innerText = nameStreak;
+            document.getElementById('name-next').innerText = t.next;
+            document.getElementById('name-next').style.display = 'inline-block';
+        }
+
+        // --- 5. GUESS FLAG GAME ---
+        let currentFlagTarget;
+        function initFlagGame() {
+            currentFlagTarget = getRandomCountry();
+            const options = getOptions(currentFlagTarget);
+
+            document.getElementById('target-country-name').innerText = getCountryName(currentFlagTarget);
+            document.getElementById('flag-feedback').innerText = "";
+            document.getElementById('flag-next').style.display = 'none';
+
+            const container = document.getElementById('flag-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<img src="${getFlagUrl(opt.code)}" alt="Flag">`;
+                btn.onclick = () => checkFlagAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkFlagAnswer(btn, code) {
+            disableButtons('flag-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentFlagTarget.code) {
+                btn.classList.add('correct');
+                addScore(20);
+                flagStreak++;
+                if(flagStreak > flagBest) {
+                    flagBest = flagStreak;
+                    localStorage.setItem('geo_flag_best', flagBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('flag-feedback').innerText = `${t.correct} +20`;
+            } else {
+                btn.classList.add('wrong');
+                flagStreak = 0;
+                document.getElementById('flag-feedback').innerText = `${t.wrong} ${getCountryName(currentFlagTarget)}`;
+            }
+            document.getElementById('flag-streak').innerText = flagStreak;
+            document.getElementById('flag-next').innerText = t.next;
+            document.getElementById('flag-next').style.display = 'inline-block';
+        }
+
+        // --- 6. RIDDLE GAME ---
+        let currentRiddleTarget;
+        function initRiddleGame() {
+            currentRiddleTarget = getRandomCountry();
+            const options = getOptions(currentRiddleTarget);
+
+            document.getElementById('riddle-emojis').innerText = currentRiddleTarget.emoji;
+            document.getElementById('riddle-feedback').innerText = "";
+            document.getElementById('riddle-next').style.display = 'none';
+
+            const container = document.getElementById('riddle-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = () => checkRiddleAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkRiddleAnswer(btn, code) {
+            disableButtons('riddle-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentRiddleTarget.code) {
+                btn.classList.add('correct');
+                addScore(25);
+                riddleStreak++;
+                if(riddleStreak > riddleBest) {
+                    riddleBest = riddleStreak;
+                    localStorage.setItem('geo_riddle_best', riddleBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('riddle-feedback').innerText = `${t.correct} +25`;
+            } else {
+                btn.classList.add('wrong');
+                riddleStreak = 0;
+                document.getElementById('riddle-feedback').innerText = `${t.wrong} ${getCountryName(currentRiddleTarget)}`;
+            }
+            document.getElementById('riddle-streak').innerText = riddleStreak;
+            document.getElementById('riddle-next').innerText = t.next;
+            document.getElementById('riddle-next').style.display = 'inline-block';
+        }
+
+        // --- 7. CAPITAL TO COUNTRY GAME ---
+        let currentCap2CTarget;
+        function initCap2CGame() {
+            currentCap2CTarget = getRandomCountry();
+            const options = getOptions(currentCap2CTarget);
+
+            document.getElementById('cap2c-target-capital').innerText = getCapitalName(currentCap2CTarget);
+            document.getElementById('cap2c-feedback').innerText = "";
+            document.getElementById('cap2c-next').style.display = 'none';
+
+            const container = document.getElementById('cap2c-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = () => checkCap2CAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkCap2CAnswer(btn, code) {
+            disableButtons('cap2c-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentCap2CTarget.code) {
+                btn.classList.add('correct');
+                addScore(20);
+                cap2cStreak++;
+                if(cap2cStreak > cap2cBest) {
+                    cap2cBest = cap2cStreak;
+                    localStorage.setItem('geo_cap2c_best', cap2cBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('cap2c-feedback').innerText = `${t.correct} +20`;
+            } else {
+                btn.classList.add('wrong');
+                cap2cStreak = 0;
+                document.getElementById('cap2c-feedback').innerText = `${t.wrong} ${getCountryName(currentCap2CTarget)}`;
+            }
+            document.getElementById('cap2c-streak').innerText = cap2cStreak;
+            document.getElementById('cap2c-next').innerText = t.next;
+            document.getElementById('cap2c-next').style.display = 'inline-block';
+        }
+
+        // --- 8. COUNTRY TO CAPITAL GAME ---
+        let currentC2CapTarget;
+        function initC2CapGame() {
+            currentC2CapTarget = getRandomCountry();
+            const options = getOptions(currentC2CapTarget);
+
+            document.getElementById('c2cap-target-country').innerText = getCountryName(currentC2CapTarget);
+            document.getElementById('c2cap-feedback').innerText = "";
+            document.getElementById('c2cap-next').style.display = 'none';
+
+            const container = document.getElementById('c2cap-options');
+            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
+            container.innerHTML = "";
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCapitalName(opt);
+                btn.onclick = () => checkC2CapAnswer(btn, opt.code);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkC2CapAnswer(btn, code) {
+            disableButtons('c2cap-options');
+            const t = i18n[settings.lang] || i18n['en'];
+            if(code === currentC2CapTarget.code) {
+                btn.classList.add('correct');
+                addScore(20);
+                c2capStreak++;
+                if(c2capStreak > c2capBest) {
+                    c2capBest = c2capStreak;
+                    localStorage.setItem('geo_c2cap_best', c2capBest);
+                    updateDashboardUI();
+                }
+                document.getElementById('c2cap-feedback').innerText = `${t.correct} +20`;
+            } else {
+                btn.classList.add('wrong');
+                c2capStreak = 0;
+                document.getElementById('c2cap-feedback').innerText = `${t.wrong} ${getCapitalName(currentC2CapTarget)}`;
+            }
+            document.getElementById('c2cap-streak').innerText = c2capStreak;
+            document.getElementById('c2cap-next').innerText = t.next;
+            document.getElementById('c2cap-next').style.display = 'inline-block';
+        }
+
+        function disableButtons(containerId) {
+            const btns = document.getElementById(containerId).getElementsByTagName('button');
+            for(let b of btns) b.disabled = true;
+        }
+
+        applyLanguageAndTheme();
+        initM2NGame();
+        initN2MGame();
+        initNameGame();
+        initFlagGame();
+        initRiddleGame();
+        initCap2CGame();
+        initC2CapGame();
+    </script>
+</body>
+</html>
