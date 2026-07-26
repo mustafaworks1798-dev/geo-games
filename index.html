@@ -116,6 +116,11 @@
             color: #fff;
         }
 
+        .settings-btn.achievements-btn:hover {
+            transform: scale(1.1) rotate(0deg);
+            background-color: #f59e0b;
+        }
+
         nav {
             display: flex;
             justify-content: center;
@@ -585,6 +590,102 @@
             margin: 0.5rem 0;
         }
 
+        /* Achievements styles */
+        .achievements-summary {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 1.05rem;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .achievement-item.unlocked {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(16,185,129,0.08), transparent);
+        }
+
+        .achievement-item.locked {
+            opacity: 0.55;
+        }
+
+        .achievement-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--border-color);
+            border-radius: 12px;
+        }
+
+        .achievement-item.unlocked .achievement-icon {
+            background: rgba(16,185,129,0.2);
+        }
+
+        .achievement-info {
+            flex: 1;
+            text-align: start;
+        }
+
+        .achievement-title {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+        }
+
+        .achievement-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            line-height: 1.35;
+        }
+
+        .achievement-status {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        .achievement-status.unlocked-text { color: var(--accent); }
+        .achievement-status.locked-text { color: var(--warning); }
+
+        .ach-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 0.9rem 1.4rem;
+            border-radius: 14px;
+            font-weight: bold;
+            box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .ach-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
         @media (max-width: 768px) {
             .options-grid.grid-6 { grid-template-columns: repeat(2, 1fr); }
             .map-options-grid { grid-template-columns: repeat(2, 1fr); }
@@ -613,6 +714,7 @@
         <div class="logo">🌍 Geo Master</div>
         <div class="header-actions">
             <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn achievements-btn" onclick="toggleAchievements(true)" title="Achievements">🏆</button>
             <button class="settings-btn" onclick="toggleGamesMenu(true)" title="Games List">📋</button>
             <button class="settings-btn" onclick="toggleModal(true)" title="Settings">⚙️</button>
         </div>
@@ -724,6 +826,34 @@
             <button id="c2cap-next" class="btn-next" onclick="initC2CapGame()">Next ➔</button>
         </section>
 
+        <section id="pop-mode" class="game-section">
+            <h2 id="title-pop">Guess Highest Population</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-pop">Current Streak</span>: 🔥 <span id="pop-streak">0</span></div>
+            </div>
+            <div class="timer-display" id="pop-timer"></div>
+            <p id="sub-pop">Which country has the highest population among these options?</p>
+            <div class="quiz-card">
+                <div id="pop-options" class="options-grid"></div>
+            </div>
+            <div id="pop-feedback" class="feedback"></div>
+            <button id="pop-next" class="btn-next" onclick="initPopGame()">Next ➔</button>
+        </section>
+
+        <section id="area-mode" class="game-section">
+            <h2 id="title-area">Guess Largest Area</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-area">Current Streak</span>: 🔥 <span id="area-streak">0</span></div>
+            </div>
+            <div class="timer-display" id="area-timer"></div>
+            <p id="sub-area">Which country has the largest area among these options?</p>
+            <div class="quiz-card">
+                <div id="area-options" class="options-grid"></div>
+            </div>
+            <div id="area-feedback" class="feedback"></div>
+            <button id="area-next" class="btn-next" onclick="initAreaGame()">Next ➔</button>
+        </section>
+
         <div class="best-performance-card">
             <h3 id="title-dash">🏆 Best Performance Dashboard</h3>
             <div class="perf-grid">
@@ -762,10 +892,21 @@
                     <span class="title" id="dash-lbl-c2cap">Country ➔ Capital</span>
                     <span class="value" id="dash-best-c2cap">0 streak</span>
                 </div>
+                <div class="perf-item">
+                    <span class="icon">👥</span>
+                    <span class="title" id="dash-lbl-pop">Highest Pop.</span>
+                    <span class="value" id="dash-best-pop">0 streak</span>
+                </div>
+                <div class="perf-item">
+                    <span class="icon">📏</span>
+                    <span class="title" id="dash-lbl-area">Largest Area</span>
+                    <span class="value" id="dash-best-area">0 streak</span>
+                </div>
             </div>
         </div>
     </main>
 
+    <!-- Settings Modal -->
     <div class="modal-overlay" id="settings-modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -865,6 +1006,7 @@
         </div>
     </div>
 
+    <!-- Games Menu Modal -->
     <div class="modal-overlay" id="games-menu-modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -878,6 +1020,21 @@
         </div>
     </div>
 
+    <!-- Achievements Modal -->
+    <div class="modal-overlay" id="achievements-modal">
+        <div class="modal-card" style="max-width:540px;">
+            <div class="modal-header">
+                <h3 id="achievements-title">🏆 Achievements</h3>
+                <button class="close-modal-btn" onclick="toggleAchievements(false)">✖</button>
+            </div>
+            <div class="settings-content">
+                <div class="achievements-summary" id="achievements-summary">0 / 0 unlocked</div>
+                <div id="achievements-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Warning Modal -->
     <div class="modal-overlay" id="level-warning-modal">
         <div class="modal-card" style="max-width:400px;">
             <div class="modal-header" style="background-color: var(--danger);">
@@ -892,6 +1049,7 @@
         </div>
     </div>
 
+    <!-- Reset Confirm Modal -->
     <div class="modal-overlay" id="reset-confirm-modal">
         <div class="modal-card" style="max-width:400px;">
             <div class="modal-header" style="background-color: var(--danger);">
@@ -909,113 +1067,96 @@
         </div>
     </div>
 
+    <!-- Achievement Toast -->
+    <div class="ach-toast" id="ach-toast"></div>
+
     <script>
         // ============================================
-        // DATA - Expanded with 30+ new countries
+        // DATA
         // ============================================
         const countries = [
-            // Middle East & North Africa (Original)
-            { name: "مصر", nameEn: "Egypt", nameFr: "Égypte", capital: "القاهرة", capitalEn: "Cairo", capitalFr: "Le Caire", code: "eg", lat: 26.8206, lng: 30.8025, emoji: "🔺 🐫 🏛️" },
-            { name: "السعودية", nameEn: "Saudi Arabia", nameFr: "Arabie Saoudite", capital: "الرياض", capitalEn: "Riyadh", capitalFr: "Riyad", code: "sa", lat: 23.8859, lng: 45.0792, emoji: "🌴 🕋 🏜️" },
-            { name: "الإمارات", nameEn: "UAE", nameFr: "Émirats Arabes Unis", capital: "أبوظبي", capitalEn: "Abu Dhabi", capitalFr: "Abou Dabi", code: "ae", lat: 23.4241, lng: 53.8478, emoji: "🏙️ 🏎️ 🦅" },
-            { name: "العراق", nameEn: "Iraq", nameFr: "Irak", capital: "بغداد", capitalEn: "Baghdad", capitalFr: "Bagdad", code: "iq", lat: 33.2232, lng: 43.6793, emoji: "🌴 📜 🏛️" },
-            { name: "المغرب", nameEn: "Morocco", nameFr: "Maroc", capital: "الرباط", capitalEn: "Rabat", capitalFr: "Rabat", code: "ma", lat: 31.7917, lng: -7.0926, emoji: "🍵 🏰 🏔️" },
-            { name: "الجزائر", nameEn: "Algeria", nameFr: "Algérie", capital: "الجزائر", capitalEn: "Algiers", capitalFr: "Alger", code: "dz", lat: 28.0339, lng: 1.6596, emoji: "🏜️ 🕌 🌴" },
-            { name: "تونس", nameEn: "Tunisia", nameFr: "Tunisie", capital: "تونس", capitalEn: "Tunis", capitalFr: "Tunis", code: "tn", lat: 33.8869, lng: 9.5375, emoji: "🏖️ 🏛️ 🏺" },
-            { name: "الأردن", nameEn: "Jordan", nameFr: "Jordanie", capital: "عمان", capitalEn: "Amman", capitalFr: "Amman", code: "jo", lat: 30.5852, lng: 36.2384, emoji: "🏛️ 🏜️ 🧂" },
-            { name: "لبنان", nameEn: "Lebanon", nameFr: "Liban", capital: "بيروت", capitalEn: "Beirut", capitalFr: "Beyrouth", code: "lb", lat: 33.8547, lng: 35.8623, emoji: "🌲 🏔️ 🥗" },
-            { name: "سلطنة عمان", nameEn: "Oman", nameFr: "Oman", capital: "مسقط", capitalEn: "Muscat", capitalFr: "Mascate", code: "om", lat: 21.5126, lng: 55.9233, emoji: "🏰 ⛵ 🏜️" },
-            { name: "قطر", nameEn: "Qatar", nameFr: "Qatar", capital: "الدوحة", capitalEn: "Doha", capitalFr: "Doha", code: "qa", lat: 25.3548, lng: 51.1839, emoji: "🏙️ ⚽ 🐪" },
-            { name: "الكويت", nameEn: "Kuwait", nameFr: "Koweït", capital: "الكويت", capitalEn: "Kuwait City", capitalFr: "Koweït", code: "kw", lat: 29.3117, lng: 47.4818, emoji: "🏙️ 🛢️ 🗼" },
-            { name: "البحرين", nameEn: "Bahrain", nameFr: "Bahreïn", capital: "المنامة", capitalEn: "Manama", capitalFr: "Manama", code: "bh", lat: 26.0667, lng: 50.5577, emoji: "🏎️ 🏝️ 🏙️" },
-            { name: "اليمن", nameEn: "Yemen", nameFr: "Yémen", capital: "صنعاء", capitalEn: "Sana'a", capitalFr: "Sanaa", code: "ye", lat: 15.5527, lng: 48.5164, emoji: "☕ 🏰 ⛰️" },
-            { name: "السودان", nameEn: "Sudan", nameFr: "Soudan", capital: "الخرطوم", capitalEn: "Khartoum", capitalFr: "Khartoum", code: "sd", lat: 12.8628, lng: 30.2176, emoji: "🌊 🔺 🏜️" },
-            { name: "ليبيا", nameEn: "Libya", nameFr: "Libye", capital: "طرابلس", capitalEn: "Tripoli", capitalFr: "Tripoli", code: "ly", lat: 26.3351, lng: 17.2283, emoji: "🏛️ 🏜️ 🛢️" },
-            { name: "فلسطين", nameEn: "Palestine", nameFr: "Palestine", capital: "القدس", capitalEn: "Jerusalem", capitalFr: "Jérusalem", code: "ps", lat: 31.9522, lng: 35.2332, emoji: "🕌 🕊️ 🫒" },
-            { name: "سوريا", nameEn: "Syria", nameFr: "Syrie", capital: "دمشق", capitalEn: "Damascus", capitalFr: "Damas", code: "sy", lat: 34.8021, lng: 38.9968, emoji: "🏛️ 🌹 📜" },
-            
-            // Europe (New)
-            { name: "فرنسا", nameEn: "France", nameFr: "France", capital: "باريس", capitalEn: "Paris", capitalFr: "Paris", code: "fr", lat: 46.2276, lng: 2.2137, emoji: "🥖 🗼 🎨" },
-            { name: "إيطاليا", nameEn: "Italy", nameFr: "Italie", capital: "روما", capitalEn: "Rome", capitalFr: "Rome", code: "it", lat: 41.8719, lng: 12.5674, emoji: "🍕 🏛️ 🍝" },
-            { name: "ألمانيا", nameEn: "Germany", nameFr: "Allemagne", capital: "برلين", capitalEn: "Berlin", capitalFr: "Berlin", code: "de", lat: 51.1657, lng: 10.4515, emoji: "🏰 🥨 🚗" },
-            { name: "المملكة المتحدة", nameEn: "United Kingdom", nameFr: "Royaume-Uni", capital: "لندن", capitalEn: "London", capitalFr: "Londres", code: "gb", lat: 55.3781, lng: -3.4360, emoji: "👑 ☕ 🚌" },
-            { name: "إسبانيا", nameEn: "Spain", nameFr: "Espagne", capital: "مدريد", capitalEn: "Madrid", capitalFr: "Madrid", code: "es", lat: 40.4637, lng: -3.7492, emoji: "💃 🥘 🐂" },
-            { name: "روسيا", nameEn: "Russia", nameFr: "Russie", capital: "موسكو", capitalEn: "Moscow", capitalFr: "Moscou", code: "ru", lat: 61.5240, lng: 105.3188, emoji: "🪆 ❄️ 🐻" },
-            { name: "تركيا", nameEn: "Turkey", nameFr: "Turquie", capital: "أنقرة", capitalEn: "Ankara", capitalFr: "Ankara", code: "tr", lat: 38.9637, lng: 35.2433, emoji: "🥙 ☕ 🎈" },
-            { name: "سويسرا", nameEn: "Switzerland", nameFr: "Suisse", capital: "برن", capitalEn: "Bern", capitalFr: "Berne", code: "ch", lat: 46.8182, lng: 8.2275, emoji: "🏔️ 🍫 🕰️" },
-            { name: "النرويج", nameEn: "Norway", nameFr: "Norvège", capital: "أوسلو", capitalEn: "Oslo", capitalFr: "Oslo", code: "no", lat: 60.4720, lng: 8.4689, emoji: "❄️ 🏔️ ⛷️" },
-            { name: "السويد", nameEn: "Sweden", nameFr: "Suède", capital: "ستوكهولم", capitalEn: "Stockholm", capitalFr: "Stockholm", code: "se", lat: 60.1282, lng: 18.6435, emoji: "🇸🇪 🦌 ⚓" },
-            
-            // Asia (New)
-            { name: "اليابان", nameEn: "Japan", nameFr: "Japon", capital: "طوكيو", capitalEn: "Tokyo", capitalFr: "Tokyo", code: "jp", lat: 36.2048, lng: 138.2529, emoji: "🌸 🍣 🗾" },
-            { name: "الصين", nameEn: "China", nameFr: "Chine", capital: "بكين", capitalEn: "Beijing", capitalFr: "Pékin", code: "cn", lat: 35.8617, lng: 104.1954, emoji: "🐼 🐉 🥢" },
-            { name: "الهند", nameEn: "India", nameFr: "Inde", capital: "نيودلهي", capitalEn: "New Delhi", capitalFr: "New Delhi", code: "in", lat: 20.5937, lng: 78.9629, emoji: "🕌 🥻 🛺" },
-            { name: "كوريا الجنوبية", nameEn: "South Korea", nameFr: "Corée du Sud", capital: "سيول", capitalEn: "Seoul", capitalFr: "Séoul", code: "kr", lat: 35.9078, lng: 127.7669, emoji: "🇰🇷 📱 🎮" },
-            { name: "إندونيسيا", nameEn: "Indonesia", nameFr: "Indonésie", capital: "جاكرتا", capitalEn: "Jakarta", capitalFr: "Jakarta", code: "id", lat: -0.7893, lng: 113.9213, emoji: "🏝️ 🐉 🌺" },
-            { name: "باكستان", nameEn: "Pakistan", nameFr: "Pakistan", capital: "إسلام آباد", capitalEn: "Islamabad", capitalFr: "Islamabad", code: "pk", lat: 30.3753, lng: 69.3451, emoji: "🏔️ 🕌 🏏" },
-            { name: "بنغلاديش", nameEn: "Bangladesh", nameFr: "Bangladesh", capital: "دكا", capitalEn: "Dhaka", capitalFr: "Dacca", code: "bd", lat: 23.6850, lng: 90.3563, emoji: "🌊 🐅 🥭" },
-            
-            // Americas (New)
-            { name: "الولايات المتحدة", nameEn: "United States", nameFr: "États-Unis", capital: "واشنطن", capitalEn: "Washington, D.C.", capitalFr: "Washington", code: "us", lat: 37.0902, lng: -95.7129, emoji: "🗽 🍔 🦅" },
-            { name: "البرازيل", nameEn: "Brazil", nameFr: "Brésil", capital: "برازيليا", capitalEn: "Brasília", capitalFr: "Brasilia", code: "br", lat: -14.2350, lng: -51.9253, emoji: "⚽ 🌴 🦜" },
-            { name: "الأرجنتين", nameEn: "Argentina", nameFr: "Argentine", capital: "بوينس آيرس", capitalEn: "Buenos Aires", capitalFr: "Buenos Aires", code: "ar", lat: -38.4161, lng: -63.6167, emoji: "🥩 ⚽ 🌞" },
-            { name: "كندا", nameEn: "Canada", nameFr: "Canada", capital: "أوتاوا", capitalEn: "Ottawa", capitalFr: "Ottawa", code: "ca", lat: 56.1304, lng: -106.3468, emoji: "🍁 🐻 🏒" },
-            { name: "المكسيك", nameEn: "Mexico", nameFr: "Mexique", capital: "مكسيكو سيتي", capitalEn: "Mexico City", capitalFr: "Mexico", code: "mx", lat: 23.6345, lng: -102.5528, emoji: "🌮 🌵 💃" },
-            { name: "بيرو", nameEn: "Peru", nameFr: "Pérou", capital: "ليما", capitalEn: "Lima", capitalFr: "Lima", code: "pe", lat: -9.1900, lng: -75.0152, emoji: "🏔️ 🦙 🗿" },
-            { name: "تشيلي", nameEn: "Chile", nameFr: "Chili", capital: "سانتياغو", capitalEn: "Santiago", capitalFr: "Santiago", code: "cl", lat: -35.6751, lng: -71.5430, emoji: "🏔️ 🌋 🍇" },
-            
-            // Africa (New)
-            { name: "جنوب أفريقيا", nameEn: "South Africa", nameFr: "Afrique du Sud", capital: "بريتوريا", capitalEn: "Pretoria", capitalFr: "Pretoria", code: "za", lat: -30.5595, lng: 22.9375, emoji: "🦁 ⛰️ 🏉" },
-            { name: "كينيا", nameEn: "Kenya", nameFr: "Kenya", capital: "نيروبي", capitalEn: "Nairobi", capitalFr: "Nairobi", code: "ke", lat: -1.2864, lng: 36.8172, emoji: "🦒 🐘 🦁" },
-            { name: "نيجيريا", nameEn: "Nigeria", nameFr: "Nigeria", capital: "أبوجا", capitalEn: "Abuja", capitalFr: "Abuja", code: "ng", lat: 9.0820, lng: 8.6753, emoji: "🌴 🦅 🎭" },
-            { name: "غانا", nameEn: "Ghana", nameFr: "Ghana", capital: "أكرا", capitalEn: "Accra", capitalFr: "Accra", code: "gh", lat: 7.9465, lng: -1.0232, emoji: "🏛️ 🌴 ⭐" },
-            { name: "إثيوبيا", nameEn: "Ethiopia", nameFr: "Éthiopie", capital: "أديس أبابا", capitalEn: "Addis Ababa", capitalFr: "Addis-Abeba", code: "et", lat: 9.1450, lng: 40.4897, emoji: "☕ 🏔️ 🦁" },
-            
-            // Oceania (New)
-            { name: "أستراليا", nameEn: "Australia", nameFr: "Australie", capital: "كانبرا", capitalEn: "Canberra", capitalFr: "Canberra", code: "au", lat: -25.2744, lng: 133.7751, emoji: "🦘 🪃 🐨" },
-            { name: "نيوزيلندا", nameEn: "New Zealand", nameFr: "Nouvelle-Zélande", capital: "ويلينغتون", capitalEn: "Wellington", capitalFr: "Wellington", code: "nz", lat: -40.9006, lng: 174.8860, emoji: "🥝 🐑 ⛰️" },
-            { name: "فيجي", nameEn: "Fiji", nameFr: "Fidji", capital: "سوفا", capitalEn: "Suva", capitalFr: "Suva", code: "fj", lat: -17.7134, lng: 178.0650, emoji: "🏝️ 🌊 🐠" },
-
-            // Europe (More)
-            { name: "البرتغال", nameEn: "Portugal", nameFr: "Portugal", capital: "لشبونة", capitalEn: "Lisbon", capitalFr: "Lisbonne", code: "pt", lat: 39.3999, lng: -8.2245, emoji: "🍷 ⚓ 🐓" },
-            { name: "هولندا", nameEn: "Netherlands", nameFr: "Pays-Bas", capital: "أمستردام", capitalEn: "Amsterdam", capitalFr: "Amsterdam", code: "nl", lat: 52.1326, lng: 5.2913, emoji: "🌷 🚲 🧀" },
-            { name: "بلجيكا", nameEn: "Belgium", nameFr: "Belgique", capital: "بروكسل", capitalEn: "Brussels", capitalFr: "Bruxelles", code: "be", lat: 50.5039, lng: 4.4699, emoji: "🍫 🍟 🎨" },
-            { name: "النمسا", nameEn: "Austria", nameFr: "Autriche", capital: "فيينا", capitalEn: "Vienna", capitalFr: "Vienne", code: "at", lat: 47.5162, lng: 14.5501, emoji: "🎻 🏔️ ☕" },
-            { name: "بولندا", nameEn: "Poland", nameFr: "Pologne", capital: "وارسو", capitalEn: "Warsaw", capitalFr: "Varsovie", code: "pl", lat: 51.9194, lng: 19.1451, emoji: "🥟 🦅 🏰" },
-            { name: "اليونان", nameEn: "Greece", nameFr: "Grèce", capital: "أثينا", capitalEn: "Athens", capitalFr: "Athènes", code: "gr", lat: 39.0742, lng: 21.8243, emoji: "🏛️ 🫒 🌊" },
-            { name: "أوكرانيا", nameEn: "Ukraine", nameFr: "Ukraine", capital: "كييف", capitalEn: "Kyiv", capitalFr: "Kiev", code: "ua", lat: 48.3794, lng: 31.1656, emoji: "🌻 🌾 🥟" },
-            { name: "فنلندا", nameEn: "Finland", nameFr: "Finlande", capital: "هلسنكي", capitalEn: "Helsinki", capitalFr: "Helsinki", code: "fi", lat: 61.9241, lng: 25.7482, emoji: "🎅 ❄️ 🧖" },
-            { name: "الدنمارك", nameEn: "Denmark", nameFr: "Danemark", capital: "كوبنهاغن", capitalEn: "Copenhagen", capitalFr: "Copenhague", code: "dk", lat: 56.2639, lng: 9.5018, emoji: "🧜‍♀️ 🚲 🏰" },
-            { name: "أيرلندا", nameEn: "Ireland", nameFr: "Irlande", capital: "دبلن", capitalEn: "Dublin", capitalFr: "Dublin", code: "ie", lat: 53.1424, lng: -7.6921, emoji: "☘️ 🍺 🎻" },
-            { name: "آيسلندا", nameEn: "Iceland", nameFr: "Islande", capital: "ريكيافيك", capitalEn: "Reykjavik", capitalFr: "Reykjavik", code: "is", lat: 64.9631, lng: -19.0208, emoji: "🌋 ❄️ ♨️" },
-
-            // Asia (More)
-            { name: "فيتنام", nameEn: "Vietnam", nameFr: "Vietnam", capital: "هانوي", capitalEn: "Hanoi", capitalFr: "Hanoï", code: "vn", lat: 14.0583, lng: 108.2772, emoji: "🍜 🌾 🚤" },
-            { name: "تايلاند", nameEn: "Thailand", nameFr: "Thaïlande", capital: "بانكوك", capitalEn: "Bangkok", capitalFr: "Bangkok", code: "th", lat: 15.8700, lng: 100.9925, emoji: "🐘 🛕 🥭" },
-            { name: "ماليزيا", nameEn: "Malaysia", nameFr: "Malaisie", capital: "كوالالمبور", capitalEn: "Kuala Lumpur", capitalFr: "Kuala Lumpur", code: "my", lat: 4.2105, lng: 101.9758, emoji: "🏙️ 🛕 🐅" },
-            { name: "الفلبين", nameEn: "Philippines", nameFr: "Philippines", capital: "مانيلا", capitalEn: "Manila", capitalFr: "Manille", code: "ph", lat: 12.8797, lng: 121.7740, emoji: "🏝️ 🥭 ⛵" },
-            { name: "سنغافورة", nameEn: "Singapore", nameFr: "Singapour", capital: "سنغافورة", capitalEn: "Singapore", capitalFr: "Singapour", code: "sg", lat: 1.3521, lng: 103.8198, emoji: "🦁 🏙️ 🌃" },
-            { name: "سريلانكا", nameEn: "Sri Lanka", nameFr: "Sri Lanka", capital: "كولومبو", capitalEn: "Colombo", capitalFr: "Colombo", code: "lk", lat: 7.8731, lng: 80.7718, emoji: "🐘 🍵 🏝️" },
-            { name: "أفغانستان", nameEn: "Afghanistan", nameFr: "Afghanistan", capital: "كابول", capitalEn: "Kabul", capitalFr: "Kaboul", code: "af", lat: 33.9391, lng: 67.7100, emoji: "⛰️ 🏔️ 🥙" },
-            { name: "كازاخستان", nameEn: "Kazakhstan", nameFr: "Kazakhstan", capital: "أستانا", capitalEn: "Astana", capitalFr: "Astana", code: "kz", lat: 48.0196, lng: 66.9237, emoji: "🐎 🏔️ 🌾" },
-            { name: "منغوليا", nameEn: "Mongolia", nameFr: "Mongolie", capital: "أولان باتور", capitalEn: "Ulaanbaatar", capitalFr: "Oulan-Bator", code: "mn", lat: 46.8625, lng: 103.8467, emoji: "🐎 ⛺ 🏔️" },
-
-            // Americas (More)
-            { name: "كولومبيا", nameEn: "Colombia", nameFr: "Colombie", capital: "بوغوتا", capitalEn: "Bogotá", capitalFr: "Bogota", code: "co", lat: 4.5709, lng: -74.2973, emoji: "☕ 🌺 🦜" },
-            { name: "فنزويلا", nameEn: "Venezuela", nameFr: "Venezuela", capital: "كاراكاس", capitalEn: "Caracas", capitalFr: "Caracas", code: "ve", lat: 6.4238, lng: -66.5897, emoji: "🛢️ 🏔️ 👑" },
-            { name: "الإكوادور", nameEn: "Ecuador", nameFr: "Équateur", capital: "كيتو", capitalEn: "Quito", capitalFr: "Quito", code: "ec", lat: -1.8312, lng: -78.1834, emoji: "🌋 🐢 🍫" },
-            { name: "كوبا", nameEn: "Cuba", nameFr: "Cuba", capital: "هافانا", capitalEn: "Havana", capitalFr: "La Havane", code: "cu", lat: 21.5218, lng: -77.7812, emoji: "🚗 🚬 🎵" },
-            { name: "بنما", nameEn: "Panama", nameFr: "Panama", capital: "مدينة بنما", capitalEn: "Panama City", capitalFr: "Panama", code: "pa", lat: 8.5380, lng: -80.7821, emoji: "🚢 🎩 🌴" },
-
-            // Africa (More)
-            { name: "الكاميرون", nameEn: "Cameroon", nameFr: "Cameroun", capital: "ياوندي", capitalEn: "Yaoundé", capitalFr: "Yaoundé", code: "cm", lat: 3.8480, lng: 11.5021, emoji: "⚽ 🌴 🦁" },
-            { name: "السنغال", nameEn: "Senegal", nameFr: "Sénégal", capital: "داكار", capitalEn: "Dakar", capitalFr: "Dakar", code: "sn", lat: 14.4974, lng: -14.4524, emoji: "🥁 🌊 🦁" },
-            { name: "تنزانيا", nameEn: "Tanzania", nameFr: "Tanzanie", capital: "دودوما", capitalEn: "Dodoma", capitalFr: "Dodoma", code: "tz", lat: -6.3690, lng: 34.8888, emoji: "🦁 ⛰️ 🏝️" },
-            { name: "زيمبابوي", nameEn: "Zimbabwe", nameFr: "Zimbabwe", capital: "هراري", capitalEn: "Harare", capitalFr: "Harare", code: "zw", lat: -19.0154, lng: 29.1549, emoji: "🐘 💧 🦓" },
-            { name: "مدغشقر", nameEn: "Madagascar", nameFr: "Madagascar", capital: "أنتاناناريفو", capitalEn: "Antananarivo", capitalFr: "Antananarivo", code: "mg", lat: -18.7669, lng: 46.8691, emoji: "🐒 🌴 🦎" }
+            { name: "مصر", nameEn: "Egypt", nameFr: "Égypte", capital: "القاهرة", capitalEn: "Cairo", capitalFr: "Le Caire", code: "eg", lat: 26.8206, lng: 30.8025, emoji: "🔺 🐫 🏛️", pop: 104000000, area: 1002450 },
+            { name: "السعودية", nameEn: "Saudi Arabia", nameFr: "Arabie Saoudite", capital: "الرياض", capitalEn: "Riyadh", capitalFr: "Riyad", code: "sa", lat: 23.8859, lng: 45.0792, emoji: "🌴 🕋 🏜️", pop: 35000000, area: 2149690 },
+            { name: "الإمارات", nameEn: "UAE", nameFr: "Émirats Arabes Unis", capital: "أبوظبي", capitalEn: "Abu Dhabi", capitalFr: "Abou Dabi", code: "ae", lat: 23.4241, lng: 53.8478, emoji: "🏙️ 🏎️ 🦅", pop: 9900000, area: 83600 },
+            { name: "العراق", nameEn: "Iraq", nameFr: "Irak", capital: "بغداد", capitalEn: "Baghdad", capitalFr: "Bagdad", code: "iq", lat: 33.2232, lng: 43.6793, emoji: "🌴 📜 🏛️", pop: 41000000, area: 438317 },
+            { name: "المغرب", nameEn: "Morocco", nameFr: "Maroc", capital: "الرباط", capitalEn: "Rabat", capitalFr: "Rabat", code: "ma", lat: 31.7917, lng: -7.0926, emoji: "🍵 🏰 🏔️", pop: 37000000, area: 446550 },
+            { name: "الجزائر", nameEn: "Algeria", nameFr: "Algérie", capital: "الجزائر", capitalEn: "Algiers", capitalFr: "Alger", code: "dz", lat: 28.0339, lng: 1.6596, emoji: "🏜️ 🕌 🌴", pop: 44000000, area: 2381741 },
+            { name: "تونس", nameEn: "Tunisia", nameFr: "Tunisie", capital: "تونس", capitalEn: "Tunis", capitalFr: "Tunis", code: "tn", lat: 33.8869, lng: 9.5375, emoji: "🏖️ 🏛️ 🏺", pop: 12000000, area: 163610 },
+            { name: "الأردن", nameEn: "Jordan", nameFr: "Jordanie", capital: "عمان", capitalEn: "Amman", capitalFr: "Amman", code: "jo", lat: 30.5852, lng: 36.2384, emoji: "🏛️ 🏜️ 🧂", pop: 10200000, area: 89342 },
+            { name: "لبنان", nameEn: "Lebanon", nameFr: "Liban", capital: "بيروت", capitalEn: "Beirut", capitalFr: "Beyrouth", code: "lb", lat: 33.8547, lng: 35.8623, emoji: "🌲 🏔️ 🥗", pop: 6800000, area: 10452 },
+            { name: "سلطنة عمان", nameEn: "Oman", nameFr: "Oman", capital: "مسقط", capitalEn: "Muscat", capitalFr: "Mascate", code: "om", lat: 21.5126, lng: 55.9233, emoji: "🏰 ⛵ 🏜️", pop: 5100000, area: 309500 },
+            { name: "قطر", nameEn: "Qatar", nameFr: "Qatar", capital: "الدوحة", capitalEn: "Doha", capitalFr: "Doha", code: "qa", lat: 25.3548, lng: 51.1839, emoji: "🏙️ ⚽ 🐪", pop: 2900000, area: 11586 },
+            { name: "الكويت", nameEn: "Kuwait", nameFr: "Koweït", capital: "الكويت", capitalEn: "Kuwait City", capitalFr: "Koweït", code: "kw", lat: 29.3117, lng: 47.4818, emoji: "🏙️ 🛢️ 🗼", pop: 4300000, area: 17818 },
+            { name: "البحرين", nameEn: "Bahrain", nameFr: "Bahreïn", capital: "المنامة", capitalEn: "Manama", capitalFr: "Manama", code: "bh", lat: 26.0667, lng: 50.5577, emoji: "🏎️ 🏝️ 🏙️", pop: 1700000, area: 765 },
+            { name: "اليمن", nameEn: "Yemen", nameFr: "Yémen", capital: "صنعاء", capitalEn: "Sana'a", capitalFr: "Sanaa", code: "ye", lat: 15.5527, lng: 48.5164, emoji: "☕ 🏰 ⛰️", pop: 30000000, area: 527968 },
+            { name: "السودان", nameEn: "Sudan", nameFr: "Soudan", capital: "الخرطوم", capitalEn: "Khartoum", capitalFr: "Khartoum", code: "sd", lat: 12.8628, lng: 30.2176, emoji: "🌊 🔺 🏜️", pop: 44000000, area: 1886068 },
+            { name: "ليبيا", nameEn: "Libya", nameFr: "Libye", capital: "طرابلس", capitalEn: "Tripoli", capitalFr: "Tripoli", code: "ly", lat: 26.3351, lng: 17.2283, emoji: "🏛️ 🏜️ 🛢️", pop: 6900000, area: 1759540 },
+            { name: "فلسطين", nameEn: "Palestine", nameFr: "Palestine", capital: "القدس", capitalEn: "Jerusalem", capitalFr: "Jérusalem", code: "ps", lat: 31.9522, lng: 35.2332, emoji: "🕌 🕊️ 🫒", pop: 5200000, area: 6020 },
+            { name: "سوريا", nameEn: "Syria", nameFr: "Syrie", capital: "دمشق", capitalEn: "Damascus", capitalFr: "Damas", code: "sy", lat: 34.8021, lng: 38.9968, emoji: "🏛️ 🌹 📜", pop: 18000000, area: 185180 },
+            { name: "فرنسا", nameEn: "France", nameFr: "France", capital: "باريس", capitalEn: "Paris", capitalFr: "Paris", code: "fr", lat: 46.2276, lng: 2.2137, emoji: "🥖 🗼 🎨", pop: 68000000, area: 551695 },
+            { name: "إيطاليا", nameEn: "Italy", nameFr: "Italie", capital: "روما", capitalEn: "Rome", capitalFr: "Rome", code: "it", lat: 41.8719, lng: 12.5674, emoji: "🍕 🏛️ 🍝", pop: 59000000, area: 301340 },
+            { name: "ألمانيا", nameEn: "Germany", nameFr: "Allemagne", capital: "برلين", capitalEn: "Berlin", capitalFr: "Berlin", code: "de", lat: 51.1657, lng: 10.4515, emoji: "🏰 🥨 🚗", pop: 83000000, area: 357022 },
+            { name: "المملكة المتحدة", nameEn: "United Kingdom", nameFr: "Royaume-Uni", capital: "لندن", capitalEn: "London", capitalFr: "Londres", code: "gb", lat: 55.3781, lng: -3.4360, emoji: "👑 ☕ 🚌", pop: 67000000, area: 242495 },
+            { name: "إسبانيا", nameEn: "Spain", nameFr: "Espagne", capital: "مدريد", capitalEn: "Madrid", capitalFr: "Madrid", code: "es", lat: 40.4637, lng: -3.7492, emoji: "💃 🥘 🐂", pop: 47000000, area: 505992 },
+            { name: "روسيا", nameEn: "Russia", nameFr: "Russie", capital: "موسكو", capitalEn: "Moscow", capitalFr: "Moscou", code: "ru", lat: 61.5240, lng: 105.3188, emoji: "🪆 ❄️ 🐻", pop: 144000000, area: 17098242 },
+            { name: "تركيا", nameEn: "Turkey", nameFr: "Turquie", capital: "أنقرة", capitalEn: "Ankara", capitalFr: "Ankara", code: "tr", lat: 38.9637, lng: 35.2433, emoji: "🥙 ☕ 🎈", pop: 85000000, area: 783562 },
+            { name: "سويسرا", nameEn: "Switzerland", nameFr: "Suisse", capital: "برن", capitalEn: "Bern", capitalFr: "Berne", code: "ch", lat: 46.8182, lng: 8.2275, emoji: "🏔️ 🍫 🕰️", pop: 8700000, area: 41285 },
+            { name: "النرويج", nameEn: "Norway", nameFr: "Norvège", capital: "أوسلو", capitalEn: "Oslo", capitalFr: "Oslo", code: "no", lat: 60.4720, lng: 8.4689, emoji: "❄️ 🏔️ ⛷️", pop: 5400000, area: 323802 },
+            { name: "السويد", nameEn: "Sweden", nameFr: "Suède", capital: "ستوكهولم", capitalEn: "Stockholm", capitalFr: "Stockholm", code: "se", lat: 60.1282, lng: 18.6435, emoji: "🇸🇪 🦌 ⚓", pop: 10400000, area: 450295 },
+            { name: "اليابان", nameEn: "Japan", nameFr: "Japon", capital: "طوكيو", capitalEn: "Tokyo", capitalFr: "Tokyo", code: "jp", lat: 36.2048, lng: 138.2529, emoji: "🌸 🍣 🗾", pop: 125000000, area: 377975 },
+            { name: "الصين", nameEn: "China", nameFr: "Chine", capital: "بكين", capitalEn: "Beijing", capitalFr: "Pékin", code: "cn", lat: 35.8617, lng: 104.1954, emoji: "🐼 🐉 🥢", pop: 1412000000, area: 9596961 },
+            { name: "الهند", nameEn: "India", nameFr: "Inde", capital: "نيودلهي", capitalEn: "New Delhi", capitalFr: "New Delhi", code: "in", lat: 20.5937, lng: 78.9629, emoji: "🕌 🥻 🛺", pop: 1428000000, area: 3287263 },
+            { name: "كوريا الجنوبية", nameEn: "South Korea", nameFr: "Corée du Sud", capital: "سيول", capitalEn: "Seoul", capitalFr: "Séoul", code: "kr", lat: 35.9078, lng: 127.7669, emoji: "🇰🇷 📱 🎮", pop: 51700000, area: 100210 },
+            { name: "إندونيسيا", nameEn: "Indonesia", nameFr: "Indonésie", capital: "جاكرتا", capitalEn: "Jakarta", capitalFr: "Jakarta", code: "id", lat: -0.7893, lng: 113.9213, emoji: "🏝️ 🐉 🌺", pop: 275000000, area: 1904569 },
+            { name: "باكستان", nameEn: "Pakistan", nameFr: "Pakistan", capital: "إسلام آباد", capitalEn: "Islamabad", capitalFr: "Islamabad", code: "pk", lat: 30.3753, lng: 69.3451, emoji: "🏔️ 🕌 🏏", pop: 235000000, area: 881912 },
+            { name: "بنغلاديش", nameEn: "Bangladesh", nameFr: "Bangladesh", capital: "دكا", capitalEn: "Dhaka", capitalFr: "Dacca", code: "bd", lat: 23.6850, lng: 90.3563, emoji: "🌊 🐅 🥭", pop: 171000000, area: 147570 },
+            { name: "الولايات المتحدة", nameEn: "United States", nameFr: "États-Unis", capital: "واشنطن", capitalEn: "Washington, D.C.", capitalFr: "Washington", code: "us", lat: 37.0902, lng: -95.7129, emoji: "🗽 🍔 🦅", pop: 331000000, area: 9833517 },
+            { name: "البرازيل", nameEn: "Brazil", nameFr: "Brésil", capital: "برازيليا", capitalEn: "Brasília", capitalFr: "Brasilia", code: "br", lat: -14.2350, lng: -51.9253, emoji: "⚽ 🌴 🦜", pop: 214000000, area: 8515767 },
+            { name: "الأرجنتين", nameEn: "Argentina", nameFr: "Argentine", capital: "بوينس آيرس", capitalEn: "Buenos Aires", capitalFr: "Buenos Aires", code: "ar", lat: -38.4161, lng: -63.6167, emoji: "🥩 ⚽ 🌞", pop: 45000000, area: 2780400 },
+            { name: "كندا", nameEn: "Canada", nameFr: "Canada", capital: "أوتاوا", capitalEn: "Ottawa", capitalFr: "Ottawa", code: "ca", lat: 56.1304, lng: -106.3468, emoji: "🍁 🐻 🏒", pop: 38000000, area: 9984670 },
+            { name: "المكسيك", nameEn: "Mexico", nameFr: "Mexique", capital: "مكسيكو سيتي", capitalEn: "Mexico City", capitalFr: "Mexico", code: "mx", lat: 23.6345, lng: -102.5528, emoji: "🌮 🌵 💃", pop: 128000000, area: 1964375 },
+            { name: "بيرو", nameEn: "Peru", nameFr: "Pérou", capital: "ليما", capitalEn: "Lima", capitalFr: "Lima", code: "pe", lat: -9.1900, lng: -75.0152, emoji: "🏔️ 🦙 🗿", pop: 33000000, area: 1285216 },
+            { name: "تشيلي", nameEn: "Chile", nameFr: "Chili", capital: "سانتياغو", capitalEn: "Santiago", capitalFr: "Santiago", code: "cl", lat: -35.6751, lng: -71.5430, emoji: "🏔️ 🌋 🍇", pop: 19000000, area: 756102 },
+            { name: "جنوب أفريقيا", nameEn: "South Africa", nameFr: "Afrique du Sud", capital: "بريتوريا", capitalEn: "Pretoria", capitalFr: "Pretoria", code: "za", lat: -30.5595, lng: 22.9375, emoji: "🦁 ⛰️ 🏉", pop: 60000000, area: 1221037 },
+            { name: "كينيا", nameEn: "Kenya", nameFr: "Kenya", capital: "نيروبي", capitalEn: "Nairobi", capitalFr: "Nairobi", code: "ke", lat: -1.2864, lng: 36.8172, emoji: "🦒 🐘 🦁", pop: 54000000, area: 580367 },
+            { name: "نيجيريا", nameEn: "Nigeria", nameFr: "Nigeria", capital: "أبوجا", capitalEn: "Abuja", capitalFr: "Abuja", code: "ng", lat: 9.0820, lng: 8.6753, emoji: "🌴 🦅 🎭", pop: 218000000, area: 923768 },
+            { name: "غانا", nameEn: "Ghana", nameFr: "Ghana", capital: "أكرا", capitalEn: "Accra", capitalFr: "Accra", code: "gh", lat: 7.9465, lng: -1.0232, emoji: "🏛️ 🌴 ⭐", pop: 31000000, area: 238533 },
+            { name: "إثيوبيا", nameEn: "Ethiopia", nameFr: "Éthiopie", capital: "أديس أبابا", capitalEn: "Addis Ababa", capitalFr: "Addis-Abeba", code: "et", lat: 9.1450, lng: 40.4897, emoji: "☕ 🏔️ 🦁", pop: 120000000, area: 1104300 },
+            { name: "أستراليا", nameEn: "Australia", nameFr: "Australie", capital: "كانبرا", capitalEn: "Canberra", capitalFr: "Canberra", code: "au", lat: -25.2744, lng: 133.7751, emoji: "🦘 🪃 🐨", pop: 26000000, area: 7692024 },
+            { name: "نيوزيلندا", nameEn: "New Zealand", nameFr: "Nouvelle-Zélande", capital: "ويلينغتون", capitalEn: "Wellington", capitalFr: "Wellington", code: "nz", lat: -40.9006, lng: 174.8860, emoji: "🥝 🐑 ⛰️", pop: 5100000, area: 268021 },
+            { name: "فيجي", nameEn: "Fiji", nameFr: "Fidji", capital: "سوفا", capitalEn: "Suva", capitalFr: "Suva", code: "fj", lat: -17.7134, lng: 178.0650, emoji: "🏝️ 🌊 🐠", pop: 900000, area: 18274 },
+            { name: "البرتغال", nameEn: "Portugal", nameFr: "Portugal", capital: "لشبونة", capitalEn: "Lisbon", capitalFr: "Lisbonne", code: "pt", lat: 39.3999, lng: -8.2245, emoji: "🍷 ⚓ 🐓", pop: 10300000, area: 92090 },
+            { name: "هولندا", nameEn: "Netherlands", nameFr: "Pays-Bas", capital: "أمستردام", capitalEn: "Amsterdam", capitalFr: "Amsterdam", code: "nl", lat: 52.1326, lng: 5.2913, emoji: "🌷 🚲 🧀", pop: 17500000, area: 41543 },
+            { name: "بلجيكا", nameEn: "Belgium", nameFr: "Belgique", capital: "بروكسل", capitalEn: "Brussels", capitalFr: "Bruxelles", code: "be", lat: 50.5039, lng: 4.4699, emoji: "🍫 🍟 🎨", pop: 11500000, area: 30528 },
+            { name: "النمسا", nameEn: "Austria", nameFr: "Autriche", capital: "فيينا", capitalEn: "Vienna", capitalFr: "Vienne", code: "at", lat: 47.5162, lng: 14.5501, emoji: "🎻 🏔️ ☕", pop: 9000000, area: 83879 },
+            { name: "بولندا", nameEn: "Poland", nameFr: "Pologne", capital: "وارسو", capitalEn: "Warsaw", capitalFr: "Varsovie", code: "pl", lat: 51.9194, lng: 19.1451, emoji: "🥟 🦅 🏰", pop: 38000000, area: 312696 },
+            { name: "اليونان", nameEn: "Greece", nameFr: "Grèce", capital: "أثينا", capitalEn: "Athens", capitalFr: "Athènes", code: "gr", lat: 39.0742, lng: 21.8243, emoji: "🏛️ 🫒 🌊", pop: 10400000, area: 131957 },
+            { name: "أوكرانيا", nameEn: "Ukraine", nameFr: "Ukraine", capital: "كييف", capitalEn: "Kyiv", capitalFr: "Kiev", code: "ua", lat: 48.3794, lng: 31.1656, emoji: "🌻 🌾 🥟", pop: 44000000, area: 603628 },
+            { name: "فنلندا", nameEn: "Finland", nameFr: "Finlande", capital: "هلسنكي", capitalEn: "Helsinki", capitalFr: "Helsinki", code: "fi", lat: 61.9241, lng: 25.7482, emoji: "🎅 ❄️ 🧖", pop: 5500000, area: 338424 },
+            { name: "الدنمارك", nameEn: "Denmark", nameFr: "Danemark", capital: "كوبنهاغن", capitalEn: "Copenhagen", capitalFr: "Copenhague", code: "dk", lat: 56.2639, lng: 9.5018, emoji: "🧜‍♀️ 🚲 🏰", pop: 5800000, area: 42933 },
+            { name: "أيرلندا", nameEn: "Ireland", nameFr: "Irlande", capital: "دبلن", capitalEn: "Dublin", capitalFr: "Dublin", code: "ie", lat: 53.1424, lng: -7.6921, emoji: "☘️ 🍺 🎻", pop: 5000000, area: 70273 },
+            { name: "آيسلندا", nameEn: "Iceland", nameFr: "Islande", capital: "ريكيافيك", capitalEn: "Reykjavik", capitalFr: "Reykjavik", code: "is", lat: 64.9631, lng: -19.0208, emoji: "🌋 ❄️ ♨️", pop: 370000, area: 103000 },
+            { name: "فيتنام", nameEn: "Vietnam", nameFr: "Vietnam", capital: "هانوي", capitalEn: "Hanoi", capitalFr: "Hanoï", code: "vn", lat: 14.0583, lng: 108.2772, emoji: "🍜 🌾 🚤", pop: 98000000, area: 331212 },
+            { name: "تايلاند", nameEn: "Thailand", nameFr: "Thaïlande", capital: "بانكوك", capitalEn: "Bangkok", capitalFr: "Bangkok", code: "th", lat: 15.8700, lng: 100.9925, emoji: "🐘 🛕 🥭", pop: 70000000, area: 513120 },
+            { name: "ماليزيا", nameEn: "Malaysia", nameFr: "Malaisie", capital: "كوالالمبور", capitalEn: "Kuala Lumpur", capitalFr: "Kuala Lumpur", code: "my", lat: 4.2105, lng: 101.9758, emoji: "🏙️ 🛕 🐅", pop: 33000000, area: 330803 },
+            { name: "الفلبين", nameEn: "Philippines", nameFr: "Philippines", capital: "مانيلا", capitalEn: "Manila", capitalFr: "Manille", code: "ph", lat: 12.8797, lng: 121.7740, emoji: "🏝️ 🥭 ⛵", pop: 115000000, area: 300000 },
+            { name: "سنغافورة", nameEn: "Singapore", nameFr: "Singapour", capital: "سنغافورة", capitalEn: "Singapore", capitalFr: "Singapour", code: "sg", lat: 1.3521, lng: 103.8198, emoji: "🦁 🏙️ 🌃", pop: 5700000, area: 728 },
+            { name: "سريلانكا", nameEn: "Sri Lanka", nameFr: "Sri Lanka", capital: "كولومبو", capitalEn: "Colombo", capitalFr: "Colombo", code: "lk", lat: 7.8731, lng: 80.7718, emoji: "🐘 🍵 🏝️", pop: 22000000, area: 65610 },
+            { name: "أفغانستان", nameEn: "Afghanistan", nameFr: "Afghanistan", capital: "كابول", capitalEn: "Kabul", capitalFr: "Kaboul", code: "af", lat: 33.9391, lng: 67.7100, emoji: "⛰️ 🏔️ 🥙", pop: 40000000, area: 652230 },
+            { name: "كازاخستان", nameEn: "Kazakhstan", nameFr: "Kazakhstan", capital: "أستانا", capitalEn: "Astana", capitalFr: "Astana", code: "kz", lat: 48.0196, lng: 66.9237, emoji: "🐎 🏔️ 🌾", pop: 19000000, area: 2724900 },
+            { name: "منغوليا", nameEn: "Mongolia", nameFr: "Mongolie", capital: "أولان باتور", capitalEn: "Ulaanbaatar", capitalFr: "Oulan-Bator", code: "mn", lat: 46.8625, lng: 103.8467, emoji: "🐎 ⛺ 🏔️", pop: 3400000, area: 1564110 },
+            { name: "كولومبيا", nameEn: "Colombia", nameFr: "Colombie", capital: "بوغوتا", capitalEn: "Bogotá", capitalFr: "Bogota", code: "co", lat: 4.5709, lng: -74.2973, emoji: "☕ 🌺 🦜", pop: 51000000, area: 1141748 },
+            { name: "فنزويلا", nameEn: "Venezuela", nameFr: "Venezuela", capital: "كاراكاس", capitalEn: "Caracas", capitalFr: "Caracas", code: "ve", lat: 6.4238, lng: -66.5897, emoji: "🛢️ 🏔️ 👑", pop: 28000000, area: 916445 },
+            { name: "الإكوادور", nameEn: "Ecuador", nameFr: "Équateur", capital: "كيتو", capitalEn: "Quito", capitalFr: "Quito", code: "ec", lat: -1.8312, lng: -78.1834, emoji: "🌋 🐢 🍫", pop: 18000000, area: 276841 },
+            { name: "كوبا", nameEn: "Cuba", nameFr: "Cuba", capital: "هافانا", capitalEn: "Havana", capitalFr: "La Havane", code: "cu", lat: 21.5218, lng: -77.7812, emoji: "🚗 🚬 🎵", pop: 11300000, area: 109884 },
+            { name: "بنما", nameEn: "Panama", nameFr: "Panama", capital: "مدينة بنما", capitalEn: "Panama City", capitalFr: "Panama", code: "pa", lat: 8.5380, lng: -80.7821, emoji: "🚢 🎩 🌴", pop: 4300000, area: 75417 },
+            { name: "الكاميرون", nameEn: "Cameroon", nameFr: "Cameroun", capital: "ياوندي", capitalEn: "Yaoundé", capitalFr: "Yaoundé", code: "cm", lat: 3.8480, lng: 11.5021, emoji: "⚽ 🌴 🦁", pop: 28000000, area: 475442 },
+            { name: "السنغال", nameEn: "Senegal", nameFr: "Sénégal", capital: "داكار", capitalEn: "Dakar", capitalFr: "Dakar", code: "sn", lat: 14.4974, lng: -14.4524, emoji: "🥁 🌊 🦁", pop: 17000000, area: 196722 },
+            { name: "تنزانيا", nameEn: "Tanzania", nameFr: "Tanzanie", capital: "دودوما", capitalEn: "Dodoma", capitalFr: "Dodoma", code: "tz", lat: -6.3690, lng: 34.8888, emoji: "🦁 ⛰️ 🏝️", pop: 61000000, area: 945087 },
+            { name: "زيمبابوي", nameEn: "Zimbabwe", nameFr: "Zimbabwe", capital: "هراري", capitalEn: "Harare", capitalFr: "Harare", code: "zw", lat: -19.0154, lng: 29.1549, emoji: "🐘 💧 🦓", pop: 16000000, area: 390757 },
+            { name: "مدغشقر", nameEn: "Madagascar", nameFr: "Madagascar", capital: "أنتاناناريفو", capitalEn: "Antananarivo", capitalFr: "Antananarivo", code: "mg", lat: -18.7669, lng: 46.8691, emoji: "🐒 🌴 🦎", pop: 28000000, area: 587041 }
         ];
 
-        // Remove duplicates and keep unique
         const uniqueCountries = [];
         const seenCodes = new Set();
         for (const c of countries) {
@@ -1039,6 +1180,8 @@
                 btnRiddle: "🧩 تخمين اللغز",
                 btnCap2C: "🏛️➔🌍 العاصمة للدولة",
                 btnC2Cap: "🌍➔🏛️ الدولة للعاصمة",
+                btnPop: "👥 الأكثر سكاناً",
+                btnArea: "📏 الأكبر مساحة",
                 titleM2N: "تخمين الاسم من الخريطة",
                 titleN2M: "تخمين الخريطة من الاسم",
                 titleName: "تخمين اسم الدولة",
@@ -1046,6 +1189,8 @@
                 titleRiddle: "لغز الإيموجي 🧩",
                 titleCap2C: "تخمين الدولة من العاصمة",
                 titleC2Cap: "تخمين العاصمة من الدولة",
+                titlePop: "تخمين الدولة الأكثر سكاناً",
+                titleArea: "تخمين الدولة الأكبر مساحة",
                 subM2N: "أي دولة تمثل هذه الحدود الجغرافية المحددة؟",
                 subN2M: "اختر شكل الحدود الجغرافية المحددة للدولة التالية:",
                 subName: "ما هي الدولة صاحبة هذا العلم؟",
@@ -1053,12 +1198,12 @@
                 subRiddle: "خمن الدولة من الإيموجيز والمعالم التالية:",
                 subCap2C: "ما هي الدولة التي عاصمتها:",
                 subC2Cap: "ما هي عاصمة الدولة التالية:",
+                subPop: "أي دولة لديها أكبر عدد من السكان بين هذه الخيارات؟",
+                subArea: "أي دولة لديها أكبر مساحة بين هذه الخيارات؟",
                 streak: "التتابع الحالي",
                 dashTitle: "🏆 سِجل أفضل أداء لك في الألعاب",
-                attempts: "محاولات",
                 consecutive: "متتالي",
                 next: "التالي ➔",
-                newCountry: "دولة جديدة 🔄",
                 correct: "إجابة صحيحة! ✅",
                 wrong: "خطأ! الإجابة الصحيحة هي: ❌",
                 timeUp: "انتهى الوقت! ⏰",
@@ -1088,7 +1233,12 @@
                 resetConfirmTitle: "⚠️ تأكيد إعادة الضبط",
                 resetConfirmMsg: "سيتم حذف جميع نقاطك وسجلاتك وإعداداتك المحفوظة نهائياً، ولا يمكن التراجع عن هذا الإجراء. هل أنت متأكد؟",
                 resetCancelBtn: "إلغاء",
-                resetConfirmBtn: "نعم، احذف كل شيء"
+                resetConfirmBtn: "نعم، احذف كل شيء",
+                achievementsTitle: "🏆 الإنجازات",
+                achievementsSummary: "مفتوح",
+                achUnlocked: "مفتوح ✅",
+                achLocked: "مقفل 🔒",
+                achToast: "إنجاز جديد! 🎉"
             },
             en: {
                 score: "Total Score",
@@ -1099,6 +1249,8 @@
                 btnRiddle: "🧩 Emoji Riddle",
                 btnCap2C: "🏛️➔🌍 Capital ➔ Country",
                 btnC2Cap: "🌍➔🏛️ Country ➔ Capital",
+                btnPop: "👥 Highest Pop.",
+                btnArea: "📏 Largest Area",
                 titleM2N: "Guess Name from Map",
                 titleN2M: "Guess Map from Name",
                 titleName: "Guess Country Name",
@@ -1106,6 +1258,8 @@
                 titleRiddle: "Emoji Riddle 🧩",
                 titleCap2C: "Guess Country from Capital",
                 titleC2Cap: "Guess Capital from Country",
+                titlePop: "Guess Highest Population",
+                titleArea: "Guess Largest Area",
                 subM2N: "Which country is represented by this vector shape?",
                 subN2M: "Select correct vector shape for:",
                 subName: "Which country owns this flag?",
@@ -1113,12 +1267,12 @@
                 subRiddle: "Guess country from emojis & landmarks:",
                 subCap2C: "Which country has this capital?",
                 subC2Cap: "What is the capital of this country?",
+                subPop: "Which country has the highest population among these options?",
+                subArea: "Which country has the largest area among these options?",
                 streak: "Current Streak",
                 dashTitle: "🏆 Best Performance Dashboard",
-                attempts: "attempts",
                 consecutive: "streak",
                 next: "Next ➔",
-                newCountry: "New Country 🔄",
                 correct: "Correct Answer! ✅",
                 wrong: "Wrong! Correct answer is: ❌",
                 timeUp: "Time's Up! ⏰",
@@ -1148,7 +1302,12 @@
                 resetConfirmTitle: "⚠️ Confirm Reset",
                 resetConfirmMsg: "This will permanently delete all your scores, streaks, and saved settings. This action cannot be undone. Are you sure?",
                 resetCancelBtn: "Cancel",
-                resetConfirmBtn: "Yes, delete everything"
+                resetConfirmBtn: "Yes, delete everything",
+                achievementsTitle: "🏆 Achievements",
+                achievementsSummary: "unlocked",
+                achUnlocked: "Unlocked ✅",
+                achLocked: "Locked 🔒",
+                achToast: "New Achievement! 🎉"
             },
             fr: {
                 score: "Score Total",
@@ -1159,6 +1318,8 @@
                 btnRiddle: "🧩 Énigme Émoji",
                 btnCap2C: "🏛️➔🌍 Capitale ➔ Pays",
                 btnC2Cap: "🌍➔🏛️ Pays ➔ Capitale",
+                btnPop: "👥 Plus Peuplé",
+                btnArea: "📏 Plus Grande Superficie",
                 titleM2N: "Devinez le nom depuis la carte",
                 titleN2M: "Devinez la carte depuis le nom",
                 titleName: "Devinez le nom du pays",
@@ -1166,6 +1327,8 @@
                 titleRiddle: "Énigme Émoji 🧩",
                 titleCap2C: "Devinez le pays grâce à sa capitale",
                 titleC2Cap: "Devinez la capitale du pays",
+                titlePop: "Devinez le Plus Peuplé",
+                titleArea: "Devinez la Plus Grande Superficie",
                 subM2N: "Quel pays est représenté par cette forme ?",
                 subN2M: "Sélectionnez la forme correcte pour :",
                 subName: "À quel pays appartient ce drapeau ?",
@@ -1173,12 +1336,12 @@
                 subRiddle: "Devinez le pays via ces émojis :",
                 subCap2C: "Quel pays a pour capitale :",
                 subC2Cap: "Quelle est la capitale de ce pays :",
+                subPop: "Quel pays a la plus grande population parmi ces options ?",
+                subArea: "Quel pays a la plus grande superficie parmi ces options ?",
                 streak: "Série Actuelle",
                 dashTitle: "🏆 Tableau des Meilleurs Scores",
-                attempts: "essais",
                 consecutive: "d'affilée",
                 next: "Suivant ➔",
-                newCountry: "Nouveau Pays 🔄",
                 correct: "Bonne réponse ! ✅",
                 wrong: "Faux ! La bonne réponse est : ❌",
                 timeUp: "Temps écoulé ! ⏰",
@@ -1208,7 +1371,12 @@
                 resetConfirmTitle: "⚠️ Confirmer la réinitialisation",
                 resetConfirmMsg: "Cela supprimera définitivement tous vos scores, séries et paramètres enregistrés. Cette action est irréversible. Êtes-vous sûr ?",
                 resetCancelBtn: "Annuler",
-                resetConfirmBtn: "Oui, tout supprimer"
+                resetConfirmBtn: "Oui, tout supprimer",
+                achievementsTitle: "🏆 Succès",
+                achievementsSummary: "débloqués",
+                achUnlocked: "Débloqué ✅",
+                achLocked: "Verrouillé 🔒",
+                achToast: "Nouveau succès ! 🎉"
             }
         };
 
@@ -1226,6 +1394,8 @@
         };
 
         let score = parseInt(localStorage.getItem('geo_score')) || 0;
+        let totalCorrect = parseInt(localStorage.getItem('geo_total_correct')) || 0;
+        let unlockedAchievements = JSON.parse(localStorage.getItem('geo_achievements') || '[]');
 
         const gameState = {
             m2n: { streak: 0, best: parseInt(localStorage.getItem('geo_m2n_best')) || 0, target: null, answered: false, timer: null },
@@ -1234,8 +1404,63 @@
             flag: { streak: 0, best: parseInt(localStorage.getItem('geo_flag_best')) || 0, target: null, answered: false, timer: null },
             riddle: { streak: 0, best: parseInt(localStorage.getItem('geo_riddle_best')) || 0, target: null, answered: false, timer: null },
             cap2c: { streak: 0, best: parseInt(localStorage.getItem('geo_cap2c_best')) || 0, target: null, answered: false, timer: null },
-            c2cap: { streak: 0, best: parseInt(localStorage.getItem('geo_c2cap_best')) || 0, target: null, answered: false, timer: null }
+            c2cap: { streak: 0, best: parseInt(localStorage.getItem('geo_c2cap_best')) || 0, target: null, answered: false, timer: null },
+            pop: { streak: 0, best: parseInt(localStorage.getItem('geo_pop_best')) || 0, target: null, answered: false, timer: null },
+            area: { streak: 0, best: parseInt(localStorage.getItem('geo_area_best')) || 0, target: null, answered: false, timer: null }
         };
+
+        // ============================================
+        // ACHIEVEMENTS (45+)
+        // ============================================
+        const achievementsDef = [
+            { id: 'score_50', icon: '🌱', type: 'score', value: 50, title: {ar:'مبتدئ',en:'Beginner',fr:'Débutant'}, desc: {ar:'احصل على 50 نقطة',en:'Reach 50 points',fr:'Atteindre 50 points'} },
+            { id: 'score_200', icon: '⭐', type: 'score', value: 200, title: {ar:'متوسط',en:'Intermediate',fr:'Intermédiaire'}, desc: {ar:'احصل على 200 نقطة',en:'Reach 200 points',fr:'Atteindre 200 points'} },
+            { id: 'score_500', icon: '🌟', type: 'score', value: 500, title: {ar:'متقدم',en:'Advanced',fr:'Avancé'}, desc: {ar:'احصل على 500 نقطة',en:'Reach 500 points',fr:'Atteindre 500 points'} },
+            { id: 'score_1000', icon: '💎', type: 'score', value: 1000, title: {ar:'خبير',en:'Expert',fr:'Expert'}, desc: {ar:'احصل على 1000 نقطة',en:'Reach 1000 points',fr:'Atteindre 1000 points'} },
+            { id: 'score_2500', icon: '👑', type: 'score', value: 2500, title: {ar:'سيد الجغرافيا',en:'Geo Master',fr:'Maître de la Géo'}, desc: {ar:'احصل على 2500 نقطة',en:'Reach 2500 points',fr:'Atteindre 2500 points'} },
+            { id: 'score_5000', icon: '🏆', type: 'score', value: 5000, title: {ar:'أسطورة',en:'Legend',fr:'Légende'}, desc: {ar:'احصل على 5000 نقطة',en:'Reach 5000 points',fr:'Atteindre 5000 points'} },
+            { id: 'correct_10', icon: '✅', type: 'correct', value: 10, title: {ar:'أول 10',en:'First 10',fr:'Premiers 10'}, desc: {ar:'أجب صح 10 مرات',en:'Get 10 correct answers',fr:'10 bonnes réponses'} },
+            { id: 'correct_50', icon: '🔥', type: 'correct', value: 50, title: {ar:'نصف مئة',en:'Half Century',fr:'Demi-siècle'}, desc: {ar:'أجب صح 50 مرة',en:'Get 50 correct answers',fr:'50 bonnes réponses'} },
+            { id: 'correct_100', icon: '💯', type: 'correct', value: 100, title: {ar:'مئة صحيحة',en:'Century',fr:'Centenaire'}, desc: {ar:'أجب صح 100 مرة',en:'Get 100 correct answers',fr:'100 bonnes réponses'} },
+            { id: 'correct_250', icon: '🎯', type: 'correct', value: 250, title: {ar:'قناص',en:'Sharpshooter',fr:'Tireur d\'élite'}, desc: {ar:'أجب صح 250 مرة',en:'Get 250 correct answers',fr:'250 bonnes réponses'} },
+            { id: 'correct_500', icon: '🏅', type: 'correct', value: 500, title: {ar:'بطل الإجابات',en:'Answer Champion',fr:'Champion des réponses'}, desc: {ar:'أجب صح 500 مرة',en:'Get 500 correct answers',fr:'500 bonnes réponses'} },
+            { id: 'm2n_5', icon: '🗺️', type: 'streak', mode: 'm2n', value: 5, title: {ar:'خرائط 5',en:'Maps x5',fr:'Cartes x5'}, desc: {ar:'تتابع 5 في خريطة←اسم',en:'5 streak in Map→Name',fr:'Série de 5 Carte→Nom'} },
+            { id: 'm2n_10', icon: '🗺️', type: 'streak', mode: 'm2n', value: 10, title: {ar:'خرائط 10',en:'Maps x10',fr:'Cartes x10'}, desc: {ar:'تتابع 10 في خريطة←اسم',en:'10 streak in Map→Name',fr:'Série de 10 Carte→Nom'} },
+            { id: 'm2n_20', icon: '🗺️', type: 'streak', mode: 'm2n', value: 20, title: {ar:'خرائط 20',en:'Maps x20',fr:'Cartes x20'}, desc: {ar:'تتابع 20 في خريطة←اسم',en:'20 streak in Map→Name',fr:'Série de 20 Carte→Nom'} },
+            { id: 'm2n_50', icon: '🗺️', type: 'streak', mode: 'm2n', value: 50, title: {ar:'خرائط أسطوري',en:'Map Legend',fr:'Légende Cartes'}, desc: {ar:'تتابع 50 في خريطة←اسم',en:'50 streak in Map→Name',fr:'Série de 50 Carte→Nom'} },
+            { id: 'n2m_5', icon: '🔤', type: 'streak', mode: 'n2m', value: 5, title: {ar:'أسماء 5',en:'Names x5',fr:'Noms x5'}, desc: {ar:'تتابع 5 في اسم←خريطة',en:'5 streak in Name→Map',fr:'Série de 5 Nom→Carte'} },
+            { id: 'n2m_10', icon: '🔤', type: 'streak', mode: 'n2m', value: 10, title: {ar:'أسماء 10',en:'Names x10',fr:'Noms x10'}, desc: {ar:'تتابع 10 في اسم←خريطة',en:'10 streak in Name→Map',fr:'Série de 10 Nom→Carte'} },
+            { id: 'n2m_20', icon: '🔤', type: 'streak', mode: 'n2m', value: 20, title: {ar:'أسماء 20',en:'Names x20',fr:'Noms x20'}, desc: {ar:'تتابع 20 في اسم←خريطة',en:'20 streak in Name→Map',fr:'Série de 20 Nom→Carte'} },
+            { id: 'n2m_50', icon: '🔤', type: 'streak', mode: 'n2m', value: 50, title: {ar:'أسماء أسطوري',en:'Name Legend',fr:'Légende Noms'}, desc: {ar:'تتابع 50 في اسم←خريطة',en:'50 streak in Name→Map',fr:'Série de 50 Nom→Carte'} },
+            { id: 'name_5', icon: '🚩', type: 'streak', mode: 'name', value: 5, title: {ar:'أعلام 5',en:'Flags x5',fr:'Drapeaux x5'}, desc: {ar:'تتابع 5 في تخمين الاسم',en:'5 streak in Guess Name',fr:'Série de 5 Trouver Nom'} },
+            { id: 'name_10', icon: '🚩', type: 'streak', mode: 'name', value: 10, title: {ar:'أعلام 10',en:'Flags x10',fr:'Drapeaux x10'}, desc: {ar:'تتابع 10 في تخمين الاسم',en:'10 streak in Guess Name',fr:'Série de 10 Trouver Nom'} },
+            { id: 'name_20', icon: '🚩', type: 'streak', mode: 'name', value: 20, title: {ar:'أعلام 20',en:'Flags x20',fr:'Drapeaux x20'}, desc: {ar:'تتابع 20 في تخمين الاسم',en:'20 streak in Guess Name',fr:'Série de 20 Trouver Nom'} },
+            { id: 'name_50', icon: '🚩', type: 'streak', mode: 'name', value: 50, title: {ar:'أعلام أسطوري',en:'Flag Legend',fr:'Légende Drapeaux'}, desc: {ar:'تتابع 50 في تخمين الاسم',en:'50 streak in Guess Name',fr:'Série de 50 Trouver Nom'} },
+            { id: 'flag_5', icon: '🌐', type: 'streak', mode: 'flag', value: 5, title: {ar:'تخمين علم 5',en:'Flag Hunt x5',fr:'Chasse Drapeau x5'}, desc: {ar:'تتابع 5 في تخمين العلم',en:'5 streak in Guess Flag',fr:'Série de 5 Trouver Drapeau'} },
+            { id: 'flag_10', icon: '🌐', type: 'streak', mode: 'flag', value: 10, title: {ar:'تخمين علم 10',en:'Flag Hunt x10',fr:'Chasse Drapeau x10'}, desc: {ar:'تتابع 10 في تخمين العلم',en:'10 streak in Guess Flag',fr:'Série de 10 Trouver Drapeau'} },
+            { id: 'flag_20', icon: '🌐', type: 'streak', mode: 'flag', value: 20, title: {ar:'تخمين علم 20',en:'Flag Hunt x20',fr:'Chasse Drapeau x20'}, desc: {ar:'تتابع 20 في تخمين العلم',en:'20 streak in Guess Flag',fr:'Série de 20 Trouver Drapeau'} },
+            { id: 'flag_50', icon: '🌐', type: 'streak', mode: 'flag', value: 50, title: {ar:'علم أسطوري',en:'Flag Legend',fr:'Légende Drapeaux'}, desc: {ar:'تتابع 50 في تخمين العلم',en:'50 streak in Guess Flag',fr:'Série de 50 Trouver Drapeau'} },
+            { id: 'riddle_5', icon: '🧩', type: 'streak', mode: 'riddle', value: 5, title: {ar:'ألغاز 5',en:'Riddles x5',fr:'Énigmes x5'}, desc: {ar:'تتابع 5 في اللغز',en:'5 streak in Emoji Riddle',fr:'Série de 5 Énigme'} },
+            { id: 'riddle_10', icon: '🧩', type: 'streak', mode: 'riddle', value: 10, title: {ar:'ألغاز 10',en:'Riddles x10',fr:'Énigmes x10'}, desc: {ar:'تتابع 10 في اللغز',en:'10 streak in Emoji Riddle',fr:'Série de 10 Énigme'} },
+            { id: 'riddle_20', icon: '🧩', type: 'streak', mode: 'riddle', value: 20, title: {ar:'ألغاز 20',en:'Riddles x20',fr:'Énigmes x20'}, desc: {ar:'تتابع 20 في اللغز',en:'20 streak in Emoji Riddle',fr:'Série de 20 Énigme'} },
+            { id: 'riddle_50', icon: '🧩', type: 'streak', mode: 'riddle', value: 50, title: {ar:'لغز أسطوري',en:'Riddle Legend',fr:'Légende Énigmes'}, desc: {ar:'تتابع 50 في اللغز',en:'50 streak in Emoji Riddle',fr:'Série de 50 Énigme'} },
+            { id: 'cap2c_5', icon: '🏛️', type: 'streak', mode: 'cap2c', value: 5, title: {ar:'عواصم 5',en:'Capitals x5',fr:'Capitales x5'}, desc: {ar:'تتابع 5 في عاصمة←دولة',en:'5 streak in Capital→Country',fr:'Série de 5 Capitale→Pays'} },
+            { id: 'cap2c_10', icon: '🏛️', type: 'streak', mode: 'cap2c', value: 10, title: {ar:'عواصم 10',en:'Capitals x10',fr:'Capitales x10'}, desc: {ar:'تتابع 10 في عاصمة←دولة',en:'10 streak in Capital→Country',fr:'Série de 10 Capitale→Pays'} },
+            { id: 'cap2c_20', icon: '🏛️', type: 'streak', mode: 'cap2c', value: 20, title: {ar:'عواصم 20',en:'Capitals x20',fr:'Capitales x20'}, desc: {ar:'تتابع 20 في عاصمة←دولة',en:'20 streak in Capital→Country',fr:'Série de 20 Capitale→Pays'} },
+            { id: 'cap2c_50', icon: '🏛️', type: 'streak', mode: 'cap2c', value: 50, title: {ar:'عواصم أسطوري',en:'Capital Legend',fr:'Légende Capitales'}, desc: {ar:'تتابع 50 في عاصمة←دولة',en:'50 streak in Capital→Country',fr:'Série de 50 Capitale→Pays'} },
+            { id: 'c2cap_5', icon: '🌍', type: 'streak', mode: 'c2cap', value: 5, title: {ar:'دول 5',en:'Countries x5',fr:'Pays x5'}, desc: {ar:'تتابع 5 في دولة←عاصمة',en:'5 streak in Country→Capital',fr:'Série de 5 Pays→Capitale'} },
+            { id: 'c2cap_10', icon: '🌍', type: 'streak', mode: 'c2cap', value: 10, title: {ar:'دول 10',en:'Countries x10',fr:'Pays x10'}, desc: {ar:'تتابع 10 في دولة←عاصمة',en:'10 streak in Country→Capital',fr:'Série de 10 Pays→Capitale'} },
+            { id: 'c2cap_20', icon: '🌍', type: 'streak', mode: 'c2cap', value: 20, title: {ar:'دول 20',en:'Countries x20',fr:'Pays x20'}, desc: {ar:'تتابع 20 في دولة←عاصمة',en:'20 streak in Country→Capital',fr:'Série de 20 Pays→Capitale'} },
+            { id: 'c2cap_50', icon: '🌍', type: 'streak', mode: 'c2cap', value: 50, title: {ar:'دول أسطوري',en:'Country Legend',fr:'Légende Pays'}, desc: {ar:'تتابع 50 في دولة←عاصمة',en:'50 streak in Country→Capital',fr:'Série de 50 Pays→Capitale'} },
+            { id: 'pop_5', icon: '👥', type: 'streak', mode: 'pop', value: 5, title: {ar:'سكان 5',en:'Pop x5',fr:'Pop x5'}, desc: {ar:'تتابع 5 في الأكثر سكاناً',en:'5 streak in Highest Pop',fr:'Série de 5 Plus Peuplé'} },
+            { id: 'pop_10', icon: '👥', type: 'streak', mode: 'pop', value: 10, title: {ar:'سكان 10',en:'Pop x10',fr:'Pop x10'}, desc: {ar:'تتابع 10 في الأكثر سكاناً',en:'10 streak in Highest Pop',fr:'Série de 10 Plus Peuplé'} },
+            { id: 'pop_20', icon: '👥', type: 'streak', mode: 'pop', value: 20, title: {ar:'سكان 20',en:'Pop x20',fr:'Pop x20'}, desc: {ar:'تتابع 20 في الأكثر سكاناً',en:'20 streak in Highest Pop',fr:'Série de 20 Plus Peuplé'} },
+            { id: 'pop_50', icon: '👥', type: 'streak', mode: 'pop', value: 50, title: {ar:'سكان أسطوري',en:'Pop Legend',fr:'Légende Population'}, desc: {ar:'تتابع 50 في الأكثر سكاناً',en:'50 streak in Highest Pop',fr:'Série de 50 Plus Peuplé'} },
+            { id: 'area_5', icon: '📏', type: 'streak', mode: 'area', value: 5, title: {ar:'مساحة 5',en:'Area x5',fr:'Superficie x5'}, desc: {ar:'تتابع 5 في الأكبر مساحة',en:'5 streak in Largest Area',fr:'Série de 5 Plus Grande Superficie'} },
+            { id: 'area_10', icon: '📏', type: 'streak', mode: 'area', value: 10, title: {ar:'مساحة 10',en:'Area x10',fr:'Superficie x10'}, desc: {ar:'تتابع 10 في الأكبر مساحة',en:'10 streak in Largest Area',fr:'Série de 10 Plus Grande Superficie'} },
+            { id: 'area_20', icon: '📏', type: 'streak', mode: 'area', value: 20, title: {ar:'مساحة 20',en:'Area x20',fr:'Superficie x20'}, desc: {ar:'تتابع 20 في الأكبر مساحة',en:'20 streak in Largest Area',fr:'Série de 20 Plus Grande Superficie'} },
+            { id: 'area_50', icon: '📏', type: 'streak', mode: 'area', value: 50, title: {ar:'مساحة أسطوري',en:'Area Legend',fr:'Légende Superficie'}, desc: {ar:'تتابع 50 في الأكبر مساحة',en:'50 streak in Largest Area',fr:'Série de 50 Plus Grande Superficie'} }
+        ];
 
         // ============================================
         // GAMES LIST & FAVORITES
@@ -1247,7 +1472,9 @@
             { id: 'flag', section: 'flag-mode', labelKey: 'btnFlag' },
             { id: 'riddle', section: 'riddle-mode', labelKey: 'btnRiddle' },
             { id: 'cap2c', section: 'cap2c-mode', labelKey: 'btnCap2C' },
-            { id: 'c2cap', section: 'c2cap-mode', labelKey: 'btnC2Cap' }
+            { id: 'c2cap', section: 'c2cap-mode', labelKey: 'btnC2Cap' },
+            { id: 'pop', section: 'pop-mode', labelKey: 'btnPop' },
+            { id: 'area', section: 'area-mode', labelKey: 'btnArea' }
         ];
 
         let favorites = JSON.parse(localStorage.getItem('geo_favorites') || '[]');
@@ -1269,11 +1496,11 @@
         }
 
         function getIsolatedMapUrl(code) {
-            return `https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/${code.toLowerCase()}/vector.svg`;
+            return 'https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/' + code.toLowerCase() + '/vector.svg';
         }
 
         function getFlagUrl(code) {
-            return `https://flagcdn.com/w320/${code.toLowerCase()}.png`;
+            return 'https://flagcdn.com/w320/' + code.toLowerCase() + '.png';
         }
 
         function getRandomCountry() {
@@ -1296,6 +1523,7 @@
             score = Math.max(0, score + pts);
             document.getElementById('score').innerText = score;
             localStorage.setItem('geo_score', score);
+            checkAchievements();
         }
 
         function penalizeScore(pts) {
@@ -1352,6 +1580,76 @@
         }
 
         // ============================================
+        // ACHIEVEMENTS SYSTEM
+        // ============================================
+        function checkAchievements() {
+            let newlyUnlocked = [];
+            achievementsDef.forEach(ach => {
+                if (unlockedAchievements.includes(ach.id)) return;
+
+                let unlocked = false;
+                if (ach.type === 'score' && score >= ach.value) unlocked = true;
+                if (ach.type === 'correct' && totalCorrect >= ach.value) unlocked = true;
+                if (ach.type === 'streak' && gameState[ach.mode] && gameState[ach.mode].best >= ach.value) unlocked = true;
+
+                if (unlocked) {
+                    unlockedAchievements.push(ach.id);
+                    newlyUnlocked.push(ach);
+                }
+            });
+
+            if (newlyUnlocked.length > 0) {
+                localStorage.setItem('geo_achievements', JSON.stringify(unlockedAchievements));
+                showAchievementToast(newlyUnlocked[0]);
+            }
+        }
+
+        function showAchievementToast(ach) {
+            const t = i18n[settings.lang] || i18n['en'];
+            const toast = document.getElementById('ach-toast');
+            const title = ach.title[settings.lang] || ach.title.en;
+            toast.innerHTML = t.achToast + '<br>' + ach.icon + ' ' + title;
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 3500);
+        }
+
+        function toggleAchievements(show) {
+            document.getElementById('achievements-modal').classList.toggle('active', show);
+            if (show) renderAchievements();
+        }
+
+        function renderAchievements() {
+            const t = i18n[settings.lang] || i18n['en'];
+            const list = document.getElementById('achievements-list');
+            const summary = document.getElementById('achievements-summary');
+            document.getElementById('achievements-title').innerText = t.achievementsTitle;
+
+            const unlockedCount = unlockedAchievements.length;
+            summary.innerText = unlockedCount + ' / ' + achievementsDef.length + ' ' + t.achievementsSummary;
+
+            list.innerHTML = '';
+            achievementsDef.forEach(ach => {
+                const isUnlocked = unlockedAchievements.includes(ach.id);
+                const item = document.createElement('div');
+                item.className = 'achievement-item ' + (isUnlocked ? 'unlocked' : 'locked');
+
+                const title = ach.title[settings.lang] || ach.title.en;
+                const desc = ach.desc[settings.lang] || ach.desc.en;
+
+                item.innerHTML = 
+                    '<div class="achievement-icon">' + ach.icon + '</div>' +
+                    '<div class="achievement-info">' +
+                        '<div class="achievement-title">' + title + '</div>' +
+                        '<div class="achievement-desc">' + desc + '</div>' +
+                        '<div class="achievement-status ' + (isUnlocked ? 'unlocked-text' : 'locked-text') + '">' +
+                            (isUnlocked ? t.achUnlocked : t.achLocked) +
+                        '</div>' +
+                    '</div>';
+                list.appendChild(item);
+            });
+        }
+
+        // ============================================
         // TIMER FUNCTIONS
         // ============================================
         function startTimer(gameKey, timerDisplayId, onTimeout) {
@@ -1367,14 +1665,14 @@
             const timerEl = document.getElementById(timerDisplayId);
             
             if (timerEl) {
-                timerEl.innerText = `⏱️ ${timeLeft}s`;
+                timerEl.innerText = '⏱️ ' + timeLeft + 's';
                 timerEl.style.color = '#f59e0b';
             }
 
-            state.timer = setInterval(() => {
+            state.timer = setInterval(function() {
                 timeLeft--;
                 if (timerEl) {
-                    timerEl.innerText = `⏱️ ${timeLeft}s`;
+                    timerEl.innerText = '⏱️ ' + timeLeft + 's';
                     if (timeLeft <= 3) timerEl.style.color = '#ef4444';
                     else timerEl.style.color = '#f59e0b';
                 }
@@ -1401,13 +1699,15 @@
         function updateDashboardUI() {
             const t = i18n[settings.lang] || i18n['en'];
             document.getElementById('score').innerText = score;
-            document.getElementById('dash-best-m2n').innerText = `${gameState.m2n.best} ${t.consecutive}`;
-            document.getElementById('dash-best-n2m').innerText = `${gameState.n2m.best} ${t.consecutive}`;
-            document.getElementById('dash-best-name').innerText = `${gameState.name.best} ${t.consecutive}`;
-            document.getElementById('dash-best-flag').innerText = `${gameState.flag.best} ${t.consecutive}`;
-            document.getElementById('dash-best-riddle').innerText = `${gameState.riddle.best} ${t.consecutive}`;
-            document.getElementById('dash-best-cap2c').innerText = `${gameState.cap2c.best} ${t.consecutive}`;
-            document.getElementById('dash-best-c2cap').innerText = `${gameState.c2cap.best} ${t.consecutive}`;
+            document.getElementById('dash-best-m2n').innerText = gameState.m2n.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-n2m').innerText = gameState.n2m.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-name').innerText = gameState.name.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-flag').innerText = gameState.flag.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-riddle').innerText = gameState.riddle.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-cap2c').innerText = gameState.cap2c.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-c2cap').innerText = gameState.c2cap.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-pop').innerText = gameState.pop.best + ' ' + t.consecutive;
+            document.getElementById('dash-best-area').innerText = gameState.area.best + ' ' + t.consecutive;
         }
 
         function renderNav() {
@@ -1423,7 +1723,7 @@
                 btn.className = 'nav-btn' + (g.section === currentModeId ? ' active' : '');
                 btn.id = 'nav-btn-' + g.id;
                 btn.innerText = t[g.labelKey];
-                btn.onclick = () => switchMode(g.section, btn);
+                btn.onclick = function() { switchMode(g.section, btn); };
                 nav.appendChild(btn);
             });
 
@@ -1431,7 +1731,7 @@
             menuBtn.className = 'nav-btn nav-btn-menu';
             menuBtn.id = 'nav-btn-allgames';
             menuBtn.innerText = t.allGamesBtn;
-            menuBtn.onclick = () => toggleGamesMenu(true);
+            menuBtn.onclick = function() { toggleGamesMenu(true); };
             nav.appendChild(menuBtn);
         }
 
@@ -1473,14 +1773,14 @@
                 const star = document.createElement('span');
                 star.className = 'fav-star';
                 star.innerText = isFav ? '⭐' : '☆';
-                star.onclick = (e) => {
+                star.onclick = function(e) {
                     e.stopPropagation();
                     toggleFavorite(g.id);
                 };
 
                 row.appendChild(nameSpan);
                 row.appendChild(star);
-                row.onclick = () => {
+                row.onclick = function() {
                     switchMode(g.section, document.getElementById('nav-btn-' + g.id));
                     toggleGamesMenu(false);
                 };
@@ -1526,6 +1826,8 @@
             document.getElementById('title-riddle').innerText = t.titleRiddle;
             document.getElementById('title-cap2c').innerText = t.titleCap2C;
             document.getElementById('title-c2cap').innerText = t.titleC2Cap;
+            document.getElementById('title-pop').innerText = t.titlePop;
+            document.getElementById('title-area').innerText = t.titleArea;
 
             document.getElementById('sub-m2n').innerText = t.subM2N;
             document.getElementById('sub-n2m').innerText = t.subN2M;
@@ -1534,6 +1836,8 @@
             document.getElementById('sub-riddle').innerText = t.subRiddle;
             document.getElementById('sub-cap2c').innerText = t.subCap2C;
             document.getElementById('sub-c2cap').innerText = t.subC2Cap;
+            document.getElementById('sub-pop').innerText = t.subPop;
+            document.getElementById('sub-area').innerText = t.subArea;
 
             document.getElementById('lbl-streak-m2n').innerText = t.streak;
             document.getElementById('lbl-streak-n2m').innerText = t.streak;
@@ -1542,6 +1846,8 @@
             document.getElementById('lbl-streak-riddle').innerText = t.streak;
             document.getElementById('lbl-streak-cap2c').innerText = t.streak;
             document.getElementById('lbl-streak-c2cap').innerText = t.streak;
+            document.getElementById('lbl-streak-pop').innerText = t.streak;
+            document.getElementById('lbl-streak-area').innerText = t.streak;
 
             document.getElementById('title-dash').innerText = t.dashTitle;
             document.getElementById('dash-lbl-m2n').innerText = t.btnM2N.replace(/^[^\s]+\s/, '');
@@ -1551,6 +1857,8 @@
             document.getElementById('dash-lbl-riddle').innerText = t.btnRiddle.replace(/^[^\s]+\s/, '');
             document.getElementById('dash-lbl-cap2c').innerText = t.btnCap2C.replace(/^[^\s]+\s/, '');
             document.getElementById('dash-lbl-c2cap').innerText = t.btnC2Cap.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-pop').innerText = t.btnPop.replace(/^[^\s]+\s/, '');
+            document.getElementById('dash-lbl-area').innerText = t.btnArea.replace(/^[^\s]+\s/, '');
 
             document.getElementById('modal-title').innerText = t.modalTitle;
             document.getElementById('tab-btn-global').innerText = t.tabGlobal;
@@ -1607,8 +1915,8 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-            document.getElementById(`tab-btn-${tab}`).classList.add('active');
-            document.getElementById(`pane-${tab}`).classList.add('active');
+            document.getElementById('tab-btn-' + tab).classList.add('active');
+            document.getElementById('pane-' + tab).classList.add('active');
         }
 
         function switchMode(modeId, btnElement) {
@@ -1621,7 +1929,7 @@
         }
 
         // ============================================
-        // QUIZ GAME ENGINE (UNIFIED)
+        // QUIZ GAME ENGINE
         // ============================================
         function initQuizGame(gameKey, config) {
             const state = gameState[gameKey];
@@ -1641,12 +1949,12 @@
 
             const feedbackEl = document.getElementById(config.feedbackId);
             const nextBtn = document.getElementById(config.nextId);
-            if (feedbackEl) feedbackEl.innerText = "";
+            if (feedbackEl) feedbackEl.innerText = '';
             if (nextBtn) nextBtn.style.display = 'none';
 
             const container = document.getElementById(config.optionsContainerId);
-            container.className = `options-grid ${settings.optionsCount === 6 ? 'grid-6' : ''}`;
-            container.innerHTML = "";
+            container.className = 'options-grid ' + (settings.optionsCount === 6 ? 'grid-6' : '');
+            container.innerHTML = '';
 
             options.forEach(opt => {
                 const btn = document.createElement('button');
@@ -1658,21 +1966,21 @@
                     btn.innerText = config.getDisplayText ? config.getDisplayText(opt) : getCountryName(opt);
                 }
                 
-                btn.onclick = () => checkQuizAnswer(btn, opt.code, gameKey, config);
+                btn.onclick = function() { checkQuizAnswer(btn, opt.code, gameKey, config); };
                 container.appendChild(btn);
             });
 
             document.getElementById(config.streakId).innerText = state.streak;
 
             if (config.timerDisplayId) {
-                startTimer(gameKey, config.timerDisplayId, () => {
+                startTimer(gameKey, config.timerDisplayId, function() {
                     if (!state.answered) {
                         state.answered = true;
                         const t = i18n[settings.lang] || i18n['en'];
                         disableButtons(config.optionsContainerId);
                         penalizeScore(settings.timerPenalty);
                         const correctName = config.getDisplayText ? config.getDisplayText(state.target) : getCountryName(state.target);
-                        document.getElementById(config.feedbackId).innerHTML = `${t.timeUp} ${t.wrong} ${correctName} (${t.penalty} -${settings.timerPenalty})`;
+                        document.getElementById(config.feedbackId).innerHTML = t.timeUp + ' ' + t.wrong + ' ' + correctName + ' (' + t.penalty + ' -' + settings.timerPenalty + ')';
                         document.getElementById(config.nextId).innerText = t.next;
                         document.getElementById(config.nextId).style.display = 'inline-block';
                     }
@@ -1697,19 +2005,22 @@
                 const multiplier = getDifficultyScoreMultiplier();
                 const pts = Math.round((config.points || 20) * multiplier);
                 addScore(pts);
+                totalCorrect++;
+                localStorage.setItem('geo_total_correct', totalCorrect);
                 state.streak++;
                 if (state.streak > state.best) {
                     state.best = state.streak;
-                    localStorage.setItem(`geo_${gameKey}_best`, state.best);
+                    localStorage.setItem('geo_' + gameKey + '_best', state.best);
                     updateDashboardUI();
                 }
-                document.getElementById(config.feedbackId).innerHTML = `${t.correct} +${pts}`;
+                document.getElementById(config.feedbackId).innerHTML = t.correct + ' +' + pts;
+                checkAchievements();
             } else {
                 btn.classList.add('wrong');
                 state.streak = 0;
                 penalizeScore(30);
                 const correctName = config.getDisplayText ? config.getDisplayText(target) : getCountryName(target);
-                document.getElementById(config.feedbackId).innerHTML = `${t.wrong} ${correctName} (-30)`;
+                document.getElementById(config.feedbackId).innerHTML = t.wrong + ' ' + correctName + ' (-30)';
             }
 
             document.getElementById(config.streakId).innerText = state.streak;
@@ -1718,7 +2029,100 @@
         }
 
         // ============================================
-        // QUIZ GAME CONFIGURATIONS
+        // MAX GAMES (Population & Area)
+        // ============================================
+        function initMaxGame(gameKey, metric) {
+            const state = gameState[gameKey];
+            state.answered = false;
+            clearTimer(gameKey);
+
+            let options = [];
+            while(options.length < settings.optionsCount) {
+                let r = getRandomCountry();
+                if(!options.find(o => o.code === r.code)) options.push(r);
+            }
+
+            let target = options.reduce(function(max, curr) {
+                return curr[metric] > max[metric] ? curr : max;
+            });
+            state.target = target;
+
+            const feedbackEl = document.getElementById(gameKey + '-feedback');
+            const nextBtn = document.getElementById(gameKey + '-next');
+            if (feedbackEl) feedbackEl.innerText = '';
+            if (nextBtn) nextBtn.style.display = 'none';
+
+            const container = document.getElementById(gameKey + '-options');
+            container.className = 'options-grid ' + (settings.optionsCount === 6 ? 'grid-6' : '');
+            container.innerHTML = '';
+
+            options.sort(function() { return Math.random() - 0.5; });
+
+            options.forEach(function(opt) {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = function() { checkMaxAnswer(btn, opt.code, gameKey); };
+                container.appendChild(btn);
+            });
+
+            document.getElementById(gameKey + '-streak').innerText = state.streak;
+
+            if (settings.timerEnabled) {
+                startTimer(gameKey, gameKey + '-timer', function() {
+                    if (!state.answered) {
+                        state.answered = true;
+                        const t = i18n[settings.lang] || i18n['en'];
+                        disableButtons(gameKey + '-options');
+                        penalizeScore(settings.timerPenalty);
+                        document.getElementById(gameKey + '-feedback').innerHTML = t.timeUp + ' ' + t.wrong + ' ' + getCountryName(state.target) + ' (' + t.penalty + ' -' + settings.timerPenalty + ')';
+                        document.getElementById(gameKey + '-next').innerText = t.next;
+                        document.getElementById(gameKey + '-next').style.display = 'inline-block';
+                    }
+                });
+            }
+        }
+
+        function checkMaxAnswer(btn, code, gameKey) {
+            const state = gameState[gameKey];
+            if (state.answered) return;
+            state.answered = true;
+            clearTimer(gameKey);
+
+            const t = i18n[settings.lang] || i18n['en'];
+            const target = state.target;
+
+            disableButtons(gameKey + '-options');
+
+            if (code === target.code) {
+                btn.classList.add('correct');
+                const multiplier = getDifficultyScoreMultiplier();
+                const pts = Math.round(25 * multiplier);
+                addScore(pts);
+                totalCorrect++;
+                localStorage.setItem('geo_total_correct', totalCorrect);
+                state.streak++;
+                if (state.streak > state.best) {
+                    state.best = state.streak;
+                    localStorage.setItem('geo_' + gameKey + '_best', state.best);
+                    updateDashboardUI();
+                }
+                document.getElementById(gameKey + '-feedback').innerHTML = t.correct + ' +' + pts;
+                checkAchievements();
+            } else {
+                btn.classList.add('wrong');
+                state.streak = 0;
+                penalizeScore(30);
+                document.getElementById(gameKey + '-feedback').innerHTML = t.wrong + ' ' + getCountryName(target) + ' (-30)';
+            }
+
+            document.getElementById(gameKey + '-streak').innerText = state.streak;
+            document.getElementById(gameKey + '-next').innerText = t.next;
+            document.getElementById(gameKey + '-next').style.display = 'inline-block';
+        }
+
+        // ============================================
+        // QUIZ CONFIGS
         // ============================================
         const quizConfigs = {
             m2n: {
@@ -1728,7 +2132,7 @@
                 streakId: 'm2n-streak',
                 timerDisplayId: 'm2n-timer',
                 points: 20,
-                setImage: (target) => {
+                setImage: function(target) {
                     document.getElementById('m2n-map-img').src = getIsolatedMapUrl(target.code);
                 },
                 getDisplayText: getCountryName
@@ -1741,13 +2145,12 @@
                 timerDisplayId: 'n2m-timer',
                 points: 25,
                 forceCount: 4,
-                setTargetDisplay: (target) => {
+                setTargetDisplay: function(target) {
                     document.getElementById('n2m-target-name').innerText = getCountryName(target);
                 },
-                renderOption: (opt) => {
-                    return `<img src="${getIsolatedMapUrl(opt.code)}" alt="Country Map">`;
-                },
-                customCheck: true
+                renderOption: function(opt) {
+                    return '<img src="' + getIsolatedMapUrl(opt.code) + '" alt="Country Map">';
+                }
             },
             name: {
                 optionsContainerId: 'name-options',
@@ -1756,7 +2159,7 @@
                 streakId: 'name-streak',
                 timerDisplayId: 'name-timer',
                 points: 20,
-                setImage: (target) => {
+                setImage: function(target) {
                     document.getElementById('quiz-flag').src = getFlagUrl(target.code);
                 },
                 getDisplayText: getCountryName
@@ -1768,11 +2171,11 @@
                 streakId: 'flag-streak',
                 timerDisplayId: 'flag-timer',
                 points: 20,
-                setTargetDisplay: (target) => {
+                setTargetDisplay: function(target) {
                     document.getElementById('target-country-name').innerText = getCountryName(target);
                 },
-                renderOption: (opt) => {
-                    return `<img src="${getFlagUrl(opt.code)}" alt="Flag">`;
+                renderOption: function(opt) {
+                    return '<img src="' + getFlagUrl(opt.code) + '" alt="Flag">';
                 }
             },
             riddle: {
@@ -1782,7 +2185,7 @@
                 streakId: 'riddle-streak',
                 timerDisplayId: 'riddle-timer',
                 points: 25,
-                setImage: (target) => {
+                setImage: function(target) {
                     document.getElementById('riddle-emojis').innerText = target.emoji;
                 },
                 getDisplayText: getCountryName
@@ -1794,7 +2197,7 @@
                 streakId: 'cap2c-streak',
                 timerDisplayId: 'cap2c-timer',
                 points: 20,
-                setTargetDisplay: (target) => {
+                setTargetDisplay: function(target) {
                     document.getElementById('cap2c-target-capital').innerText = getCapitalName(target);
                 },
                 getDisplayText: getCountryName
@@ -1806,38 +2209,36 @@
                 streakId: 'c2cap-streak',
                 timerDisplayId: 'c2cap-timer',
                 points: 20,
-                setTargetDisplay: (target) => {
+                setTargetDisplay: function(target) {
                     document.getElementById('c2cap-target-country').innerText = getCountryName(target);
                 },
                 getDisplayText: getCapitalName
             }
         };
 
-        // Special handler for N2M (map cards instead of buttons)
         function initN2MGame() {
             const state = gameState.n2m;
             state.answered = false;
-            const config = quizConfigs.n2m;
             state.target = getRandomCountry();
             const options = getOptions(state.target, 4);
 
             clearTimer('n2m');
 
             document.getElementById('n2m-target-name').innerText = getCountryName(state.target);
-            document.getElementById('n2m-feedback').innerText = "";
+            document.getElementById('n2m-feedback').innerText = '';
             document.getElementById('n2m-next').style.display = 'none';
 
             const container = document.getElementById('n2m-options');
-            container.innerHTML = "";
+            container.innerHTML = '';
 
-            options.forEach((opt) => {
+            options.forEach(function(opt) {
                 const card = document.createElement('div');
                 card.className = 'map-option-card';
-                card.onclick = () => checkN2MAnswer(card, opt.code);
+                card.onclick = function() { checkN2MAnswer(card, opt.code); };
 
                 const img = document.createElement('img');
                 img.src = getIsolatedMapUrl(opt.code);
-                img.alt = "Country Map";
+                img.alt = 'Country Map';
 
                 card.appendChild(img);
                 container.appendChild(card);
@@ -1845,14 +2246,14 @@
 
             document.getElementById('n2m-streak').innerText = state.streak;
 
-            startTimer('n2m', 'n2m-timer', () => {
+            startTimer('n2m', 'n2m-timer', function() {
                 if (!state.answered) {
                     state.answered = true;
                     const t = i18n[settings.lang] || i18n['en'];
                     const cards = document.querySelectorAll('.map-option-card');
-                    cards.forEach(c => c.style.pointerEvents = 'none');
+                    cards.forEach(function(c) { c.style.pointerEvents = 'none'; });
                     penalizeScore(settings.timerPenalty);
-                    document.getElementById('n2m-feedback').innerHTML = `${t.timeUp} ${t.wrong} ${getCountryName(state.target)} (${t.penalty} -${settings.timerPenalty})`;
+                    document.getElementById('n2m-feedback').innerHTML = t.timeUp + ' ' + t.wrong + ' ' + getCountryName(state.target) + ' (' + t.penalty + ' -' + settings.timerPenalty + ')';
                     document.getElementById('n2m-next').innerText = t.next;
                     document.getElementById('n2m-next').style.display = 'inline-block';
                 }
@@ -1870,25 +2271,28 @@
             const target = state.target;
 
             const cards = document.querySelectorAll('.map-option-card');
-            cards.forEach(c => c.style.pointerEvents = 'none');
+            cards.forEach(function(c) { c.style.pointerEvents = 'none'; });
 
             if (code === target.code) {
                 selectedCard.classList.add('correct');
                 const multiplier = getDifficultyScoreMultiplier();
                 const pts = Math.round(25 * multiplier);
                 addScore(pts);
+                totalCorrect++;
+                localStorage.setItem('geo_total_correct', totalCorrect);
                 state.streak++;
                 if (state.streak > state.best) {
                     state.best = state.streak;
                     localStorage.setItem('geo_n2m_best', state.best);
                     updateDashboardUI();
                 }
-                document.getElementById('n2m-feedback').innerHTML = `${t.correct} +${pts}`;
+                document.getElementById('n2m-feedback').innerHTML = t.correct + ' +' + pts;
+                checkAchievements();
             } else {
                 selectedCard.classList.add('wrong');
                 state.streak = 0;
                 penalizeScore(30);
-                document.getElementById('n2m-feedback').innerHTML = `${t.wrong} ${getCountryName(target)} (-30)`;
+                document.getElementById('n2m-feedback').innerHTML = t.wrong + ' ' + getCountryName(target) + ' (-30)';
             }
             document.getElementById('n2m-streak').innerText = state.streak;
             document.getElementById('n2m-next').innerText = t.next;
@@ -1901,6 +2305,9 @@
         function initRiddleGame() { initQuizGame('riddle', quizConfigs.riddle); }
         function initCap2CGame() { initQuizGame('cap2c', quizConfigs.cap2c); }
         function initC2CapGame() { initQuizGame('c2cap', quizConfigs.c2cap); }
+        
+        function initPopGame() { initMaxGame('pop', 'pop'); }
+        function initAreaGame() { initMaxGame('area', 'area'); }
 
         function initAllQuizGames() {
             initM2NGame();
@@ -1910,6 +2317,8 @@
             initRiddleGame();
             initCap2CGame();
             initC2CapGame();
+            initPopGame();
+            initAreaGame();
         }
 
         // ============================================
@@ -1925,25 +2334,20 @@
 
         applyLanguageAndTheme();
         initAllQuizGames();
+        checkAchievements();
 
-        // Register Service Worker for PWA functionality
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').then((registration) => {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(registration) {
                     console.log('Service Worker registered:', registration);
-                    
-                    // Check for updates periodically
-                    setInterval(() => {
-                        registration.update();
-                    }, 60000); // Check every minute
-                }).catch((error) => {
+                    setInterval(function() { registration.update(); }, 60000);
+                }).catch(function(error) {
                     console.log('Service Worker registration failed:', error);
                 });
             });
 
-            // Handle Service Worker updates
             let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
                 if (refreshing) return;
                 refreshing = true;
                 window.location.reload();
