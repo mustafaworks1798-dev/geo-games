@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Guess which country has the highest population!">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Geo Master">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <title>Geo Master</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin>
+    <link rel="preconnect" href="https://ads.halalspark.co.uk" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <a href="../index.html" class="logo">🌍 Geo Master</a>
+        <div class="header-actions">
+            <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn achievements-btn" onclick="openAchievements()" title="Achievements">🏆</button>
+            <button class="settings-btn" onclick="openGamesMenu()" title="Games List">📋</button>
+            <button class="settings-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <div class="ad-container ad-header" id="ad-header">
+        <!-- HalalSpark Enhanced Ad Script v3.0 - header -->
+        <script src="https://ads.halalspark.co.uk/get-ad-script-header?placement_id=43a3b7df-d61d-4292-9444-d44b68ae3094&domain=https://mustafaworks1798-dev.github.io/geo-games&_v=3.0" async></script>
+    </div>
+
+    <main>
+        <a href="../index.html" class="back-btn" id="back-btn">↩ Back</a>
+
+        <div class="ad-container ad-banner" id="ad-banner" style="margin-bottom: 1rem;"></div>
+
+        <div class="game-section">
+            <h2 id="title-game">Guess Highest Population</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak">Current Streak</span>: 🔥 <span id="game-streak">0</span></div>
+            </div>
+            <div class="timer-display" id="game-timer"></div>
+            <p id="sub-game">Which country has the highest population among these options?</p>
+            <div class="quiz-card">
+                <div id="game-options" class="options-grid"></div>
+            </div>
+            <div id="game-feedback" class="feedback"></div>
+            <button id="game-next" class="btn-next" onclick="initGame()">Next ➔</button>
+        </div>
+    </main>
+
+    <div class="ad-container ad-footer" id="ad-footer"></div>
+    <footer><p>🌍 Geo Master &copy; 2024</p></footer>
+
+    <script src="../script.js"></script>
+    <script>
+        const GAME_KEY = 'pop';
+        const gameState = { streak: parseInt(localStorage.getItem('geo_' + GAME_KEY + '_current_streak')) || 0, target: null, answered: false, timer: null };
+
+        const gameI18n = {
+            ar: { title: "تخمين الدولة الأكثر سكاناً", sub: "أي دولة لديها أكبر عدد من السكان بين هذه الخيارات؟", streak: "التتابع الحالي", back: "↩ رجوع", next: "التالي ➔", correct: "إجابة صحيحة! ✅", wrong: "خطأ! الإجابة الصحيحة هي: ❌", timeUp: "انتهى الوقت! ⏰", penalty: "خصم" },
+            en: { title: "Guess Highest Population", sub: "Which country has the highest population among these options?", streak: "Current Streak", back: "↩ Back", next: "Next ➔", correct: "Correct Answer! ✅", wrong: "Wrong! Correct answer is: ❌", timeUp: "Time's Up! ⏰", penalty: "penalty" },
+            fr: { title: "Devinez le Plus Peuplé", sub: "Quel pays a la plus grande population parmi ces options ?", streak: "Série Actuelle", back: "↩ Retour", next: "Suivant ➔", correct: "Bonne réponse ! ✅", wrong: "Faux ! La bonne réponse est : ❌", timeUp: "Temps écoulé ! ⏰", penalty: "pénalité" }
+        };
+
+        function gt(k) { const lang = getSetting('lang', 'en'); return (gameI18n[lang] || gameI18n['en'])[k] || k; }
+        function rc() { return allCountries[Math.floor(Math.random() * allCountries.length)]; }
+        function dm() { switch(getSetting('difficulty', 'medium')) { case 'easy': return 1; case 'hard': return 2; default: return 1.5; } }
+
+        function st() {
+            if (gameState.timer) clearInterval(gameState.timer);
+            if (!getSetting('timerEnabled', true)) { document.getElementById('game-timer').innerText = ''; return; }
+            let tl = getSetting('timerSeconds', 10), el = document.getElementById('game-timer');
+            el.innerText = '⏱️ ' + tl + 's'; el.style.color = '#f59e0b';
+            gameState.timer = setInterval(function() {
+                tl--; el.innerText = '⏱️ ' + tl + 's';
+                if (tl <= 3) el.style.color = '#ef4444'; else el.style.color = '#f59e0b';
+                if (tl <= 0) { clearInterval(gameState.timer); gameState.timer = null; el.innerText = '⏰ Time\'s Up!'; ht(); }
+            }, 1000);
+        }
+        function ct() { if (gameState.timer) { clearInterval(gameState.timer); gameState.timer = null; } }
+        function ht() { if (gameState.answered) return; gameState.answered = true; dab(); penalizeScore(getSetting('timerPenalty', 10)); document.getElementById('game-feedback').innerHTML = gt('timeUp') + ' ' + gt('wrong') + ' ' + getCountryName(gameState.target) + ' (' + gt('penalty') + ' -' + getSetting('timerPenalty', 10) + ')'; document.getElementById('game-next').innerText = gt('next'); document.getElementById('game-next').style.display = 'inline-block'; }
+        function dab() { const b = document.getElementById('game-options').getElementsByTagName('button'); for (let x of b) x.disabled = true; }
+        function uui() {
+            const l = getSetting('lang', 'en'); document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+            document.getElementById('title-game').innerText = gt('title'); document.getElementById('sub-game').innerText = gt('sub');
+            document.getElementById('lbl-streak').innerText = gt('streak'); document.getElementById('back-btn').innerText = gt('back');
+            document.getElementById('lbl-score').innerText = getTranslation().score; updateScoreDisplay(); document.getElementById('game-streak').innerText = gameState.streak;
+        }
+
+        function initGame() {
+            gameState.answered = false; ct();
+            let o = []; while(o.length < getSetting('optionsCount', 4)) { let r = rc(); if(!o.find(x => x.code === r.code)) o.push(r); }
+            gameState.target = o.reduce((max, curr) => curr.pop > max.pop ? curr : max);
+            document.getElementById('game-feedback').innerHTML = ''; document.getElementById('game-next').style.display = 'none';
+            const c = document.getElementById('game-options'); c.className = 'options-grid ' + (getSetting('optionsCount', 4) === 6 ? 'grid-6' : ''); c.innerHTML = '';
+            o.sort(() => Math.random() - 0.5).forEach(opt => { const b = document.createElement('button'); b.className = 'option-btn'; b.innerText = getCountryName(opt); b.onclick = function() { ca(b, opt.code); }; c.appendChild(b); });
+            document.getElementById('game-streak').innerText = gameState.streak; st();
+        }
+
+        function ca(btn, code) {
+            if (gameState.answered) return; gameState.answered = true; ct(); dab();
+            if (code === gameState.target.code) {
+                btn.classList.add('correct'); addScore(Math.round(25 * dm())); gameState.streak++;
+                updateBestStreak(GAME_KEY, gameState.streak); localStorage.setItem('geo_' + GAME_KEY + '_current_streak', gameState.streak);
+                document.getElementById('game-feedback').innerHTML = gt('correct') + ' +' + Math.round(25 * dm());
+            } else {
+                btn.classList.add('wrong'); gameState.streak = 0; localStorage.setItem('geo_' + GAME_KEY + '_current_streak', 0); penalizeScore(30);
+                document.querySelectorAll('#game-options .option-btn').forEach(b => { if (b.innerText === getCountryName(gameState.target)) b.classList.add('correct'); });
+                document.getElementById('game-feedback').innerHTML = gt('wrong') + ' ' + getCountryName(gameState.target) + ' (-30)';
+            }
+            document.getElementById('game-streak').innerText = gameState.streak;
+            document.getElementById('game-next').innerText = gt('next'); document.getElementById('game-next').style.display = 'inline-block';
+        }
+
+        const oasc = window.applySettingsChange;
+        if (oasc) { window.applySettingsChange = function() { oasc(); uui(); }; }
+
+        async function init() { if (!allCountries || allCountries.length === 0) await loadCountries(); uui(); initGame(); }
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

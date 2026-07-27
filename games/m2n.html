@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Guess the country name from its map shape!">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Geo Master">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <title>Geo Master</title>
+    
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin>
+    <link rel="preconnect" href="https://ads.halalspark.co.uk" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- HEADER -->
+    <!-- ============================================ -->
+    <header>
+        <a href="../index.html" class="logo">🌍 Geo Master</a>
+        <div class="header-actions">
+            <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn achievements-btn" onclick="openAchievements()" title="Achievements">🏆</button>
+            <button class="settings-btn" onclick="openGamesMenu()" title="Games List">📋</button>
+            <button class="settings-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- HEADER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-header" id="ad-header">
+        <!-- HalalSpark Enhanced Ad Script v3.0 - header -->
+        <script src="https://ads.halalspark.co.uk/get-ad-script-header?placement_id=43a3b7df-d61d-4292-9444-d44b68ae3094&domain=https://mustafaworks1798-dev.github.io/geo-games&_v=3.0" async></script>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- BANNER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-banner" id="ad-banner">
+        <!-- HalalSpark Banner Ad will load here -->
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================ -->
+    <main>
+        <!-- Back Button -->
+        <a href="../index.html" class="back-btn" id="back-btn">↩ Back</a>
+
+        <!-- Game Section -->
+        <div class="game-section">
+            <h2 id="title-m2n">Guess Name from Map</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-m2n">Current Streak</span>: 🔥 <span id="m2n-streak">0</span></div>
+            </div>
+            <div class="timer-display" id="m2n-timer"></div>
+            <p id="sub-m2n">Which country is represented by this vector shape?</p>
+            <div class="vector-map-display">
+                <img id="m2n-map-img" src="" alt="Country Map Vector">
+            </div>
+            <div id="m2n-options" class="options-grid" style="margin: 0.8rem auto 0 auto;"></div>
+            <div id="m2n-feedback" class="feedback"></div>
+            <button id="m2n-next" class="btn-next" onclick="initGame()">Next ➔</button>
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- FOOTER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-footer" id="ad-footer">
+        <!-- HalalSpark Footer Ad will load here -->
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer>
+        <p>🌍 Geo Master &copy; 2024</p>
+    </footer>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================ -->
+    <script src="../script.js"></script>
+    <script>
+        /* ============================================
+           M2N GAME SCRIPT
+           Map → Name Quiz
+           ============================================ */
+
+        // Game state
+        const gameState = {
+            streak: 0,
+            target: null,
+            answered: false,
+            timer: null
+        };
+
+        // Restore streak from localStorage
+        gameState.streak = parseInt(localStorage.getItem('geo_m2n_current_streak')) || 0;
+
+        // ============================================
+        // I18N FOR THIS GAME
+        // ============================================
+        const gameI18n = {
+            ar: {
+                title: "تخمين الاسم من الخريطة",
+                sub: "أي دولة تمثل هذه الحدود الجغرافية؟",
+                streak: "التتابع الحالي",
+                back: "↩ رجوع",
+                next: "التالي ➔",
+                correct: "إجابة صحيحة! ✅",
+                wrong: "خطأ! الإجابة الصحيحة هي: ❌",
+                timeUp: "انتهى الوقت! ⏰",
+                penalty: "خصم"
+            },
+            en: {
+                title: "Guess Name from Map",
+                sub: "Which country is represented by this vector shape?",
+                streak: "Current Streak",
+                back: "↩ Back",
+                next: "Next ➔",
+                correct: "Correct Answer! ✅",
+                wrong: "Wrong! Correct answer is: ❌",
+                timeUp: "Time's Up! ⏰",
+                penalty: "penalty"
+            },
+            fr: {
+                title: "Devinez le nom depuis la carte",
+                sub: "Quel pays est représenté par cette forme ?",
+                streak: "Série Actuelle",
+                back: "↩ Retour",
+                next: "Suivant ➔",
+                correct: "Bonne réponse ! ✅",
+                wrong: "Faux ! La bonne réponse est : ❌",
+                timeUp: "Temps écoulé ! ⏰",
+                penalty: "pénalité"
+            }
+        };
+
+        function getGameText(key) {
+            const lang = getSetting('lang', 'en');
+            return (gameI18n[lang] || gameI18n['en'])[key] || key;
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function getIsolatedMapUrl(code) {
+            return 'https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/' + code.toLowerCase() + '/vector.svg';
+        }
+
+        function getRandomCountry() {
+            if (!allCountries || allCountries.length === 0) return null;
+            return allCountries[Math.floor(Math.random() * allCountries.length)];
+        }
+
+        function getOptions(correct, count) {
+            count = count || getSetting('optionsCount', 4);
+            let options = [correct];
+            let attempts = 0;
+            while (options.length < count && attempts < 100) {
+                let r = getRandomCountry();
+                if (!options.find(o => o.code === r.code)) options.push(r);
+                attempts++;
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function getDifficultyMultiplier() {
+            switch(getSetting('difficulty', 'medium')) {
+                case 'easy': return 1;
+                case 'hard': return 2;
+                default: return 1.5;
+            }
+        }
+
+        // ============================================
+        // TIMER FUNCTIONS
+        // ============================================
+        function startTimer() {
+            if (gameState.timer) clearInterval(gameState.timer);
+            
+            if (!getSetting('timerEnabled', true)) {
+                document.getElementById('m2n-timer').innerText = '';
+                return;
+            }
+
+            let timeLeft = getSetting('timerSeconds', 10);
+            const timerEl = document.getElementById('m2n-timer');
+            
+            timerEl.innerText = '⏱️ ' + timeLeft + 's';
+            timerEl.style.color = '#f59e0b';
+
+            gameState.timer = setInterval(function() {
+                timeLeft--;
+                timerEl.innerText = '⏱️ ' + timeLeft + 's';
+                if (timeLeft <= 3) timerEl.style.color = '#ef4444';
+                else timerEl.style.color = '#f59e0b';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    gameState.timer = null;
+                    timerEl.innerText = '⏰ Time\'s Up!';
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function clearTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        function handleTimeout() {
+            if (gameState.answered) return;
+            gameState.answered = true;
+            
+            disableAllButtons();
+            penalizeScore(getSetting('timerPenalty', 10));
+            
+            const targetName = getCountryName(gameState.target);
+            const feedbackEl = document.getElementById('m2n-feedback');
+            feedbackEl.innerHTML = getGameText('timeUp') + ' ' + getGameText('wrong') + ' ' + targetName + ' (' + getGameText('penalty') + ' -' + getSetting('timerPenalty', 10) + ')';
+            
+            const nextBtn = document.getElementById('m2n-next');
+            nextBtn.innerText = getGameText('next');
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        function disableAllButtons() {
+            const container = document.getElementById('m2n-options');
+            const btns = container.getElementsByTagName('button');
+            for (let b of btns) b.disabled = true;
+        }
+
+        function updateUI() {
+            const lang = getSetting('lang', 'en');
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('title-m2n').innerText = getGameText('title');
+            document.getElementById('sub-m2n').innerText = getGameText('sub');
+            document.getElementById('lbl-streak-m2n').innerText = getGameText('streak');
+            document.getElementById('back-btn').innerText = getGameText('back');
+            document.getElementById('lbl-score').innerText = getTranslation().score;
+            
+            updateScoreDisplay();
+            document.getElementById('m2n-streak').innerText = gameState.streak;
+        }
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function initGame() {
+            gameState.answered = false;
+            clearTimer();
+            
+            // Get a random target country
+            gameState.target = getRandomCountry();
+            if (!gameState.target) {
+                // Countries not loaded yet, try again
+                setTimeout(initGame, 500);
+                return;
+            }
+            
+            const optionsCount = getSetting('optionsCount', 4);
+            const options = getOptions(gameState.target, optionsCount);
+            
+            // Update map image
+            document.getElementById('m2n-map-img').src = getIsolatedMapUrl(gameState.target.code);
+            
+            // Clear feedback and hide next button
+            document.getElementById('m2n-feedback').innerHTML = '';
+            document.getElementById('m2n-next').style.display = 'none';
+            
+            // Render option buttons
+            const container = document.getElementById('m2n-options');
+            container.className = 'options-grid ' + (optionsCount === 6 ? 'grid-6' : '');
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = getCountryName(opt);
+                btn.onclick = function() { checkAnswer(btn, opt.code); };
+                container.appendChild(btn);
+            });
+            
+            // Update streak display
+            document.getElementById('m2n-streak').innerText = gameState.streak;
+            
+            // Start timer
+            startTimer();
+        }
+
+        function checkAnswer(btn, code) {
+            if (gameState.answered) return;
+            gameState.answered = true;
+            
+            clearTimer();
+            disableAllButtons();
+            
+            const target = gameState.target;
+            const feedbackEl = document.getElementById('m2n-feedback');
+            
+            if (code === target.code) {
+                // CORRECT!
+                btn.classList.add('correct');
+                const multiplier = getDifficultyMultiplier();
+                const pts = Math.round(20 * multiplier);
+                addScore(pts);
+                
+                gameState.streak++;
+                if (updateBestStreak('m2n', gameState.streak)) {
+                    // Best streak updated
+                }
+                localStorage.setItem('geo_m2n_current_streak', gameState.streak);
+                
+                feedbackEl.innerHTML = getGameText('correct') + ' +' + pts;
+            } else {
+                // WRONG!
+                btn.classList.add('wrong');
+                gameState.streak = 0;
+                localStorage.setItem('geo_m2n_current_streak', 0);
+                penalizeScore(30);
+                
+                const targetName = getCountryName(target);
+                feedbackEl.innerHTML = getGameText('wrong') + ' ' + targetName + ' (-30)';
+            }
+            
+            document.getElementById('m2n-streak').innerText = gameState.streak;
+            
+            const nextBtn = document.getElementById('m2n-next');
+            nextBtn.innerText = getGameText('next');
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // ============================================
+        // SETTINGS CHANGE HANDLER
+        // ============================================
+        const originalApplySettingsChange = window.applySettingsChange;
+        if (originalApplySettingsChange) {
+            window.applySettingsChange = function() {
+                originalApplySettingsChange();
+                updateUI();
+                if (!gameState.answered && gameState.target) {
+                    // Re-render options with new count
+                    const optionsCount = getSetting('optionsCount', 4);
+                    const options = getOptions(gameState.target, optionsCount);
+                    const container = document.getElementById('m2n-options');
+                    container.className = 'options-grid ' + (optionsCount === 6 ? 'grid-6' : '');
+                    container.innerHTML = '';
+                    options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = 'option-btn';
+                        btn.innerText = getCountryName(opt);
+                        btn.onclick = function() { checkAnswer(btn, opt.code); };
+                        container.appendChild(btn);
+                    });
+                }
+            };
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function initialize() {
+            // Load countries if not already loaded
+            if (!allCountries || allCountries.length === 0) {
+                await loadCountries();
+            }
+            
+            updateUI();
+            initGame();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initialize();
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Guess the flag from the country name!">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Geo Master">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <title>Geo Master</title>
+    
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin>
+    <link rel="preconnect" href="https://ads.halalspark.co.uk" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- HEADER -->
+    <!-- ============================================ -->
+    <header>
+        <a href="../index.html" class="logo">🌍 Geo Master</a>
+        <div class="header-actions">
+            <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn achievements-btn" onclick="openAchievements()" title="Achievements">🏆</button>
+            <button class="settings-btn" onclick="openGamesMenu()" title="Games List">📋</button>
+            <button class="settings-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- HEADER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-header" id="ad-header">
+        <!-- HalalSpark Enhanced Ad Script v3.0 - header -->
+        <script src="https://ads.halalspark.co.uk/get-ad-script-header?placement_id=43a3b7df-d61d-4292-9444-d44b68ae3094&domain=https://mustafaworks1798-dev.github.io/geo-games&_v=3.0" async></script>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================ -->
+    <main>
+        <!-- Back Button -->
+        <a href="../index.html" class="back-btn" id="back-btn">↩ Back</a>
+
+        <!-- Game Section -->
+        <div class="game-section">
+            <h2 id="title-flag">Guess Flag</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-flag">Current Streak</span>: 🔥 <span id="flag-streak">0</span></div>
+            </div>
+            <div class="timer-display" id="flag-timer"></div>
+            <p id="sub-flag">Select the correct flag for:</p>
+            <h1 id="target-country-name" style="color: #818cf8; margin: 0.4rem 0; font-size: 1.3rem;">---</h1>
+            <div class="quiz-card">
+                <div id="flag-options" class="options-grid"></div>
+            </div>
+            <div id="flag-feedback" class="feedback"></div>
+            <button id="flag-next" class="btn-next" onclick="initGame()">Next ➔</button>
+        </div>
+
+        <!-- Banner Ad (after game section) -->
+        <div class="ad-container ad-banner" id="ad-banner" style="margin-top: 1rem;">
+            <!-- HalalSpark Banner Ad will load here -->
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- FOOTER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-footer" id="ad-footer">
+        <!-- HalalSpark Footer Ad will load here -->
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer>
+        <p>🌍 Geo Master &copy; 2024</p>
+    </footer>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================ -->
+    <script src="../script.js"></script>
+    <script>
+        /* ============================================
+           FLAG GAME SCRIPT
+           Country Name → Flag Quiz
+           ============================================ */
+
+        // Game state
+        const gameState = {
+            streak: 0,
+            target: null,
+            answered: false,
+            timer: null
+        };
+
+        // Restore streak from localStorage
+        gameState.streak = parseInt(localStorage.getItem('geo_flag_current_streak')) || 0;
+
+        // ============================================
+        // I18N FOR THIS GAME
+        // ============================================
+        const gameI18n = {
+            ar: {
+                title: "تخمين العلم",
+                sub: "اختر العلم الصحيح للدولة التالية:",
+                streak: "التتابع الحالي",
+                back: "↩ رجوع",
+                next: "التالي ➔",
+                correct: "إجابة صحيحة! ✅",
+                wrong: "خطأ! الإجابة الصحيحة هي: ❌",
+                timeUp: "انتهى الوقت! ⏰",
+                penalty: "خصم"
+            },
+            en: {
+                title: "Guess Flag",
+                sub: "Select the correct flag for:",
+                streak: "Current Streak",
+                back: "↩ Back",
+                next: "Next ➔",
+                correct: "Correct Answer! ✅",
+                wrong: "Wrong! Correct answer is: ❌",
+                timeUp: "Time's Up! ⏰",
+                penalty: "penalty"
+            },
+            fr: {
+                title: "Devinez le drapeau",
+                sub: "Sélectionnez le bon drapeau pour :",
+                streak: "Série Actuelle",
+                back: "↩ Retour",
+                next: "Suivant ➔",
+                correct: "Bonne réponse ! ✅",
+                wrong: "Faux ! La bonne réponse est : ❌",
+                timeUp: "Temps écoulé ! ⏰",
+                penalty: "pénalité"
+            }
+        };
+
+        function getGameText(key) {
+            const lang = getSetting('lang', 'en');
+            return (gameI18n[lang] || gameI18n['en'])[key] || key;
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function getFlagUrl(code) {
+            return 'https://flagcdn.com/w320/' + code.toLowerCase() + '.png';
+        }
+
+        function getRandomCountry() {
+            if (!allCountries || allCountries.length === 0) return null;
+            return allCountries[Math.floor(Math.random() * allCountries.length)];
+        }
+
+        function getOptions(correct, count) {
+            count = count || getSetting('optionsCount', 4);
+            let options = [correct];
+            let attempts = 0;
+            while (options.length < count && attempts < 100) {
+                let r = getRandomCountry();
+                if (!options.find(o => o.code === r.code)) options.push(r);
+                attempts++;
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function getDifficultyMultiplier() {
+            switch(getSetting('difficulty', 'medium')) {
+                case 'easy': return 1;
+                case 'hard': return 2;
+                default: return 1.5;
+            }
+        }
+
+        // ============================================
+        // TIMER FUNCTIONS
+        // ============================================
+        function startTimer() {
+            if (gameState.timer) clearInterval(gameState.timer);
+            
+            if (!getSetting('timerEnabled', true)) {
+                document.getElementById('flag-timer').innerText = '';
+                return;
+            }
+
+            let timeLeft = getSetting('timerSeconds', 10);
+            const timerEl = document.getElementById('flag-timer');
+            
+            timerEl.innerText = '⏱️ ' + timeLeft + 's';
+            timerEl.style.color = '#f59e0b';
+
+            gameState.timer = setInterval(function() {
+                timeLeft--;
+                timerEl.innerText = '⏱️ ' + timeLeft + 's';
+                if (timeLeft <= 3) timerEl.style.color = '#ef4444';
+                else timerEl.style.color = '#f59e0b';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    gameState.timer = null;
+                    timerEl.innerText = '⏰ Time\'s Up!';
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function clearTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        function handleTimeout() {
+            if (gameState.answered) return;
+            gameState.answered = true;
+            
+            disableAllButtons();
+            penalizeScore(getSetting('timerPenalty', 10));
+            
+            const targetName = getCountryName(gameState.target);
+            const feedbackEl = document.getElementById('flag-feedback');
+            feedbackEl.innerHTML = getGameText('timeUp') + ' ' + getGameText('wrong') + ' ' + targetName + ' (' + getGameText('penalty') + ' -' + getSetting('timerPenalty', 10) + ')';
+            
+            const nextBtn = document.getElementById('flag-next');
+            nextBtn.innerText = getGameText('next');
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // ============================================
+        // UI FUNCTIONS
+        // ============================================
+        function disableAllButtons() {
+            const container = document.getElementById('flag-options');
+            const btns = container.getElementsByTagName('button');
+            for (let b of btns) b.disabled = true;
+        }
+
+        function updateUI() {
+            const lang = getSetting('lang', 'en');
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('title-flag').innerText = getGameText('title');
+            document.getElementById('sub-flag').innerText = getGameText('sub');
+            document.getElementById('lbl-streak-flag').innerText = getGameText('streak');
+            document.getElementById('back-btn').innerText = getGameText('back');
+            document.getElementById('lbl-score').innerText = getTranslation().score;
+            
+            updateScoreDisplay();
+            document.getElementById('flag-streak').innerText = gameState.streak;
+        }
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function initGame() {
+            gameState.answered = false;
+            clearTimer();
+            
+            // Get a random target country
+            gameState.target = getRandomCountry();
+            if (!gameState.target) {
+                setTimeout(initGame, 500);
+                return;
+            }
+            
+            const optionsCount = getSetting('optionsCount', 4);
+            const options = getOptions(gameState.target, optionsCount);
+            
+            // Set target country name
+            document.getElementById('target-country-name').innerText = getCountryName(gameState.target);
+            
+            // Clear feedback and hide next button
+            document.getElementById('flag-feedback').innerHTML = '';
+            document.getElementById('flag-next').style.display = 'none';
+            
+            // Render flag option buttons
+            const container = document.getElementById('flag-options');
+            container.className = 'options-grid ' + (optionsCount === 6 ? 'grid-6' : '');
+            container.innerHTML = '';
+            
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = '<img src="' + getFlagUrl(opt.code) + '" alt="Flag" loading="lazy" onerror="this.parentElement.innerHTML=\'🚩\'">';
+                btn.onclick = function() { checkAnswer(btn, opt.code); };
+                container.appendChild(btn);
+            });
+            
+            // Update streak display
+            document.getElementById('flag-streak').innerText = gameState.streak;
+            
+            // Start timer
+            startTimer();
+        }
+
+        function checkAnswer(btn, code) {
+            if (gameState.answered) return;
+            gameState.answered = true;
+            
+            clearTimer();
+            disableAllButtons();
+            
+            const target = gameState.target;
+            const feedbackEl = document.getElementById('flag-feedback');
+            
+            if (code === target.code) {
+                // CORRECT!
+                btn.classList.add('correct');
+                const multiplier = getDifficultyMultiplier();
+                const pts = Math.round(20 * multiplier);
+                addScore(pts);
+                
+                gameState.streak++;
+                if (updateBestStreak('flag', gameState.streak)) {
+                    // Best streak updated
+                }
+                localStorage.setItem('geo_flag_current_streak', gameState.streak);
+                
+                feedbackEl.innerHTML = getGameText('correct') + ' +' + pts;
+            } else {
+                // WRONG!
+                btn.classList.add('wrong');
+                gameState.streak = 0;
+                localStorage.setItem('geo_flag_current_streak', 0);
+                penalizeScore(30);
+                
+                // Highlight correct flag
+                const btns = document.querySelectorAll('#flag-options .option-btn');
+                btns.forEach(function(b) {
+                    const img = b.querySelector('img');
+                    if (img && img.src.includes(target.code.toLowerCase())) {
+                        b.classList.add('correct');
+                    }
+                });
+                
+                const targetName = getCountryName(target);
+                feedbackEl.innerHTML = getGameText('wrong') + ' ' + targetName + ' (-30)';
+            }
+            
+            document.getElementById('flag-streak').innerText = gameState.streak;
+            
+            const nextBtn = document.getElementById('flag-next');
+            nextBtn.innerText = getGameText('next');
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // ============================================
+        // SETTINGS CHANGE HANDLER
+        // ============================================
+        const originalApplySettingsChange = window.applySettingsChange;
+        if (originalApplySettingsChange) {
+            window.applySettingsChange = function() {
+                originalApplySettingsChange();
+                updateUI();
+                if (!gameState.answered && gameState.target) {
+                    // Re-render options with new count
+                    const optionsCount = getSetting('optionsCount', 4);
+                    const options = getOptions(gameState.target, optionsCount);
+                    const container = document.getElementById('flag-options');
+                    container.className = 'options-grid ' + (optionsCount === 6 ? 'grid-6' : '');
+                    container.innerHTML = '';
+                    options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = 'option-btn';
+                        btn.innerHTML = '<img src="' + getFlagUrl(opt.code) + '" alt="Flag" loading="lazy">';
+                        btn.onclick = function() { checkAnswer(btn, opt.code); };
+                        container.appendChild(btn);
+                    });
+                }
+            };
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function initialize() {
+            if (!allCountries || allCountries.length === 0) {
+                await loadCountries();
+            }
+            
+            updateUI();
+            initGame();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initialize();
+        });
+    </script>
+
+</body>
+</html>

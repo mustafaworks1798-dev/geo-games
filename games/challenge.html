@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ultimate geography challenge! Answer 3 questions about a target country.">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Geo Master">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%234f46e5' width='192' height='192' rx='45'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>🌍</text></svg>">
+    <title>Geo Master</title>
+    
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin>
+    <link rel="preconnect" href="https://ads.halalspark.co.uk" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- HEADER -->
+    <!-- ============================================ -->
+    <header>
+        <a href="../index.html" class="logo">🌍 Geo Master</a>
+        <div class="header-actions">
+            <div class="score-board"><span id="lbl-score">Total Score</span>: <span id="score">0</span></div>
+            <button class="settings-btn achievements-btn" onclick="openAchievements()" title="Achievements">🏆</button>
+            <button class="settings-btn" onclick="openGamesMenu()" title="Games List">📋</button>
+            <button class="settings-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- HEADER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-header" id="ad-header">
+        <!-- HalalSpark Enhanced Ad Script v3.0 - header -->
+        <script src="https://ads.halalspark.co.uk/get-ad-script-header?placement_id=43a3b7df-d61d-4292-9444-d44b68ae3094&domain=https://mustafaworks1798-dev.github.io/geo-games&_v=3.0" async></script>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAIN CONTENT -->
+    <!-- ============================================ -->
+    <main>
+        <!-- Back Button -->
+        <a href="../index.html" class="back-btn" id="back-btn">↩ Back</a>
+
+        <!-- Game Section -->
+        <div class="game-section">
+            <h2 id="title-challenge">🏆 CHALLENGE (Silver)</h2>
+            <div class="stats-bar">
+                <div class="stat-item"><span id="lbl-streak-challenge">Current Streak</span>: 🔥 <span id="challenge-streak">0</span></div>
+                <div class="stat-item">⚡ <span id="challenge-step-indicator">Step 1/3</span></div>
+            </div>
+            <div class="timer-display" id="challenge-timer"></div>
+            <p id="sub-challenge" style="font-size:1rem; margin-bottom:0.5rem;">Answer 3 questions about the target country</p>
+            <div id="challenge-target-display" style="font-size:1.8rem; font-weight:bold; color:var(--silver); margin:0.3rem 0;">---</div>
+
+            <div id="challenge-step-container">
+                <div class="challenge-step" id="challenge-step1">
+                    <div class="step-title">1️⃣ Which is the correct flag?</div>
+                    <div id="challenge-flags" class="options-grid"></div>
+                </div>
+                <div class="challenge-step" id="challenge-step2" style="display:none;">
+                    <div class="step-title">2️⃣ Which is the correct map?</div>
+                    <div id="challenge-maps" class="map-options-grid"></div>
+                </div>
+                <div class="challenge-step" id="challenge-step3" style="display:none;">
+                    <div class="step-title">3️⃣ Which country shares a border with the target?</div>
+                    <div id="challenge-borders" class="options-grid"></div>
+                </div>
+            </div>
+
+            <div id="challenge-feedback" class="feedback" style="margin-top:0.6rem;"></div>
+            <div id="challenge-progress" style="font-size:0.85rem; opacity:0.7; margin:0.4rem 0;">✅ 0/3 correct</div>
+            <button id="challenge-next" class="btn-next" onclick="initGame()">Next ➔</button>
+        </div>
+
+        <!-- Banner Ad (after game) -->
+        <div class="ad-container ad-banner" id="ad-banner" style="margin-top: 1rem;">
+            <!-- HalalSpark Banner Ad will load here -->
+        </div>
+    </main>
+
+    <!-- ============================================ -->
+    <!-- FOOTER AD (HalalSpark) -->
+    <!-- ============================================ -->
+    <div class="ad-container ad-footer" id="ad-footer">
+        <!-- HalalSpark Footer Ad will load here -->
+    </div>
+
+    <!-- ============================================ -->
+    <!-- FOOTER -->
+    <!-- ============================================ -->
+    <footer>
+        <p>🌍 Geo Master &copy; 2024</p>
+    </footer>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS -->
+    <!-- ============================================ -->
+    <script src="../script.js"></script>
+    <script>
+        /* ============================================
+           CHALLENGE GAME SCRIPT
+           3-Step Challenge (Silver Level)
+           ============================================ */
+
+        // Border data (simplified)
+        const borderData = {
+            eg: ['sd', 'ly', 'ps', 'jo', 'sa'],
+            sa: ['jo', 'iq', 'kw', 'qa', 'ae', 'om', 'ye'],
+            ae: ['om', 'sa'],
+            iq: ['tr', 'sy', 'jo', 'sa', 'kw', 'ir'],
+            ma: ['dz', 'eh'],
+            dz: ['ma', 'mr', 'ml', 'ne', 'ly', 'tn'],
+            tn: ['dz', 'ly'],
+            jo: ['sa', 'iq', 'sy', 'ps', 'il'],
+            lb: ['sy', 'il'],
+            om: ['sa', 'ae', 'ye'],
+            qa: ['sa'],
+            kw: ['sa', 'iq'],
+            bh: ['sa'],
+            ye: ['sa', 'om'],
+            sd: ['eg', 'ly', 'td', 'cf', 'ss', 'et', 'er'],
+            ly: ['tn', 'dz', 'ne', 'td', 'sd', 'eg'],
+            ps: ['jo', 'il', 'eg'],
+            sy: ['tr', 'iq', 'jo', 'ps', 'lb', 'il'],
+            fr: ['be', 'lu', 'de', 'ch', 'it', 'es', 'ad', 'mc'],
+            it: ['fr', 'ch', 'at', 'si', 'sm', 'va'],
+            de: ['dk', 'pl', 'cz', 'at', 'ch', 'fr', 'lu', 'be', 'nl'],
+            gb: ['ie'],
+            es: ['fr', 'ad', 'pt', 'ma'],
+            ru: ['no', 'fi', 'ee', 'lv', 'lt', 'pl', 'by', 'ua', 'ge', 'az', 'kz', 'cn', 'mn', 'kp'],
+            tr: ['gr', 'bg', 'ge', 'am', 'az', 'ir', 'iq', 'sy'],
+            ch: ['fr', 'de', 'it', 'at', 'li'],
+            no: ['se', 'fi', 'ru'],
+            se: ['no', 'fi'],
+            jp: ['ru', 'kr', 'cn'],
+            cn: ['ru', 'mn', 'kp', 'vn', 'la', 'mm', 'in', 'np', 'pk', 'af', 'tj', 'kg', 'kz'],
+            in: ['pk', 'cn', 'np', 'bt', 'mm', 'bd', 'lk'],
+            kr: ['kp'],
+            id: ['my', 'pg', 'tl'],
+            pk: ['af', 'ir', 'in', 'cn'],
+            bd: ['in', 'mm'],
+            us: ['ca', 'mx'],
+            br: ['uy', 'ar', 'py', 'bo', 'pe', 'co', 've', 'gy', 'sr', 'gf'],
+            ar: ['cl', 'bo', 'py', 'br', 'uy'],
+            ca: ['us'],
+            mx: ['us', 'gt', 'bz'],
+            pe: ['ec', 'co', 'br', 'bo', 'cl'],
+            cl: ['ar', 'bo', 'pe'],
+            za: ['bw', 'zw', 'mz', 'sz', 'ls'],
+            ke: ['et', 'so', 'tz', 'ug', 'ss'],
+            ng: ['bj', 'ne', 'td', 'cm', 'gh'],
+            gh: ['ci', 'bf', 'tg', 'ng'],
+            et: ['er', 'dj', 'so', 'ke', 'ss', 'sd'],
+            au: [],
+            nz: [],
+            fj: [],
+            pt: ['es'],
+            nl: ['be', 'de'],
+            be: ['nl', 'de', 'lu', 'fr'],
+            at: ['de', 'ch', 'it', 'si', 'hu', 'sk', 'cz'],
+            pl: ['de', 'cz', 'sk', 'ua', 'by', 'lt', 'ru'],
+            gr: ['al', 'mk', 'bg', 'tr'],
+            ua: ['pl', 'by', 'ru', 'ge', 'ro', 'md', 'hu', 'sk'],
+            fi: ['no', 'se', 'ru'],
+            dk: ['de', 'se'],
+            ie: ['gb'],
+            is: [],
+            vn: ['cn', 'la', 'kh'],
+            th: ['mm', 'la', 'kh', 'my'],
+            my: ['th', 'br', 'id', 'ph'],
+            ph: ['my'],
+            sg: ['my'],
+            lk: ['in'],
+            af: ['pk', 'ir', 'tm', 'uz', 'tj', 'cn'],
+            kz: ['ru', 'cn', 'kg', 'uz', 'tm', 'az'],
+            mn: ['ru', 'cn'],
+            co: ['ec', 'pe', 'br', 've', 'pa'],
+            ve: ['co', 'br', 'gy'],
+            ec: ['co', 'pe'],
+            cu: ['us', 'mx'],
+            pa: ['cr', 'co'],
+            cm: ['ng', 'td', 'cf', 'cg', 'ga', 'gq'],
+            sn: ['mr', 'ml', 'gn', 'gw', 'gm'],
+            tz: ['ke', 'ug', 'rw', 'bi', 'cd', 'zm', 'mw', 'mz'],
+            zw: ['za', 'bw', 'zm', 'mz'],
+            mg: []
+        };
+
+        // Game state
+        const gameState = {
+            streak: 0,
+            target: null,
+            answered: false,
+            timer: null,
+            step: 0,
+            correctCount: 0,
+            failed: false,
+            borderCorrect: null
+        };
+
+        // Restore streak
+        gameState.streak = parseInt(localStorage.getItem('geo_challenge_current_streak')) || 0;
+
+        // ============================================
+        // I18N
+        // ============================================
+        const gameI18n = {
+            ar: {
+                title: "🏆 التحدّي (فضي)",
+                sub: "أجب عن 3 أسئلة عن الدولة المستهدفة",
+                streak: "التتابع الحالي",
+                back: "↩ رجوع",
+                next: "التالي ➔",
+                correct1: "✅ علم صحيح!",
+                correct2: "✅ خريطة صحيحة!",
+                correct3: "✅ حدود صحيحة!",
+                wrong1: "❌ علم خاطئ",
+                wrong2: "❌ خريطة خاطئة",
+                wrong3: "❌ حدود خاطئة",
+                complete: "🎉 أكملت التحدي!",
+                fail: "😞 فشل التحدي",
+                timeUp: "انتهى الوقت! ⏰",
+                penalty: "خصم",
+                stepFlag: "1️⃣ اختر العلم الصحيح",
+                stepMap: "2️⃣ اختر الخريطة الصحيحة",
+                stepBorder: "3️⃣ أي دولة تشارك الحدود؟"
+            },
+            en: {
+                title: "🏆 CHALLENGE (Silver)",
+                sub: "Answer 3 questions about the target country",
+                streak: "Current Streak",
+                back: "↩ Back",
+                next: "Next ➔",
+                correct1: "✅ Flag correct!",
+                correct2: "✅ Map correct!",
+                correct3: "✅ Border correct!",
+                wrong1: "❌ Wrong flag",
+                wrong2: "❌ Wrong map",
+                wrong3: "❌ Wrong border",
+                complete: "🎉 Challenge completed!",
+                fail: "😞 Challenge failed",
+                timeUp: "Time's Up! ⏰",
+                penalty: "penalty",
+                stepFlag: "1️⃣ Which is the correct flag?",
+                stepMap: "2️⃣ Which is the correct map?",
+                stepBorder: "3️⃣ Which country shares a border?"
+            },
+            fr: {
+                title: "🏆 DÉFI (Argent)",
+                sub: "Répondez à 3 questions sur le pays cible",
+                streak: "Série Actuelle",
+                back: "↩ Retour",
+                next: "Suivant ➔",
+                correct1: "✅ Drapeau correct !",
+                correct2: "✅ Carte correcte !",
+                correct3: "✅ Frontière correcte !",
+                wrong1: "❌ Mauvais drapeau",
+                wrong2: "❌ Mauvaise carte",
+                wrong3: "❌ Mauvaise frontière",
+                complete: "🎉 Défi terminé !",
+                fail: "😞 Défi échoué",
+                timeUp: "Temps écoulé ! ⏰",
+                penalty: "pénalité",
+                stepFlag: "1️⃣ Quel est le bon drapeau ?",
+                stepMap: "2️⃣ Quelle est la bonne carte ?",
+                stepBorder: "3️⃣ Quel pays partage une frontière ?"
+            }
+        };
+
+        function getGameText(key) {
+            const lang = getSetting('lang', 'en');
+            return (gameI18n[lang] || gameI18n['en'])[key] || key;
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        function getFlagUrl(code) {
+            return 'https://flagcdn.com/w320/' + code.toLowerCase() + '.png';
+        }
+
+        function getIsolatedMapUrl(code) {
+            return 'https://cdn.jsdelivr.net/gh/djaiss/mapsicon@master/all/' + code.toLowerCase() + '/vector.svg';
+        }
+
+        function getRandomCountry() {
+            if (!allCountries || allCountries.length === 0) return null;
+            return allCountries[Math.floor(Math.random() * allCountries.length)];
+        }
+
+        function getOptions(correct, count) {
+            count = count || getSetting('optionsCount', 4);
+            let options = [correct];
+            let attempts = 0;
+            while (options.length < count && attempts < 100) {
+                let r = getRandomCountry();
+                if (!options.find(o => o.code === r.code)) options.push(r);
+                attempts++;
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function getNeighbors(country) {
+            const neighbors = borderData[country.code] || [];
+            return neighbors.map(code => allCountries.find(c => c.code === code)).filter(c => c);
+        }
+
+        function getDifficultyMultiplier() {
+            switch(getSetting('difficulty', 'medium')) {
+                case 'easy': return 1;
+                case 'hard': return 2;
+                default: return 1.5;
+            }
+        }
+
+        // ============================================
+        // TIMER
+        // ============================================
+        function startTimer() {
+            if (gameState.timer) clearInterval(gameState.timer);
+            
+            if (!getSetting('timerEnabled', true)) {
+                document.getElementById('challenge-timer').innerText = '';
+                return;
+            }
+
+            let timeLeft = getSetting('timerSeconds', 10);
+            const timerEl = document.getElementById('challenge-timer');
+            
+            timerEl.innerText = '⏱️ ' + timeLeft + 's';
+            timerEl.style.color = '#f59e0b';
+
+            gameState.timer = setInterval(function() {
+                timeLeft--;
+                timerEl.innerText = '⏱️ ' + timeLeft + 's';
+                if (timeLeft <= 3) timerEl.style.color = '#ef4444';
+                else timerEl.style.color = '#f59e0b';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    gameState.timer = null;
+                    timerEl.innerText = '⏰ Time\'s Up!';
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function clearTimer() {
+            if (gameState.timer) {
+                clearInterval(gameState.timer);
+                gameState.timer = null;
+            }
+        }
+
+        function handleTimeout() {
+            if (gameState.answered || gameState.failed) return;
+            gameState.answered = true;
+            gameState.failed = true;
+            
+            disableAll();
+            penalizeScore(getSetting('timerPenalty', 10));
+            
+            document.getElementById('challenge-feedback').innerHTML = getGameText('timeUp') + ' ' + getGameText('fail') + ' (' + getGameText('penalty') + ' -' + getSetting('timerPenalty', 10) + ')';
+            document.getElementById('challenge-next').innerText = getGameText('next');
+            document.getElementById('challenge-next').style.display = 'inline-block';
+        }
+
+        function disableAll() {
+            ['challenge-flags', 'challenge-maps', 'challenge-borders'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const btns = el.getElementsByTagName('button');
+                    for (let b of btns) b.disabled = true;
+                    const cards = el.getElementsByClassName('map-option-card');
+                    for (let c of cards) c.style.pointerEvents = 'none';
+                }
+            });
+        }
+
+        // ============================================
+        // UI
+        // ============================================
+        function updateUI() {
+            const lang = getSetting('lang', 'en');
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('title-challenge').innerText = getGameText('title');
+            document.getElementById('sub-challenge').innerText = getGameText('sub');
+            document.getElementById('lbl-streak-challenge').innerText = getGameText('streak');
+            document.getElementById('back-btn').innerText = getGameText('back');
+            document.getElementById('lbl-score').innerText = getTranslation().score;
+            
+            updateScoreDisplay();
+            document.getElementById('challenge-streak').innerText = gameState.streak;
+        }
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function initGame() {
+            gameState.answered = false;
+            gameState.step = 0;
+            gameState.correctCount = 0;
+            gameState.failed = false;
+            gameState.borderCorrect = null;
+            clearTimer();
+            
+            gameState.target = getRandomCountry();
+            if (!gameState.target) {
+                setTimeout(initGame, 500);
+                return;
+            }
+            
+            const optsCount = getSetting('optionsCount', 4);
+            
+            document.getElementById('challenge-target-display').innerText = getCountryName(gameState.target);
+            document.getElementById('challenge-feedback').innerHTML = '';
+            document.getElementById('challenge-progress').innerHTML = '✅ 0/3 correct';
+            document.getElementById('challenge-next').style.display = 'none';
+            document.getElementById('challenge-step-indicator').innerText = 'Step 1/3';
+            
+            // Step 1: Flags
+            document.getElementById('challenge-step1').style.display = 'block';
+            document.getElementById('challenge-step2').style.display = 'none';
+            document.getElementById('challenge-step3').style.display = 'none';
+            
+            document.querySelector('#challenge-step1 .step-title').innerText = getGameText('stepFlag');
+            
+            const flagContainer = document.getElementById('challenge-flags');
+            flagContainer.className = 'options-grid ' + (optsCount === 6 ? 'grid-6' : '');
+            flagContainer.innerHTML = '';
+            
+            const flagOpts = getOptions(gameState.target, optsCount);
+            flagOpts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = '<img src="' + getFlagUrl(opt.code) + '" alt="Flag" loading="lazy">';
+                btn.onclick = function() { checkFlag(btn, opt.code); };
+                flagContainer.appendChild(btn);
+            });
+            
+            document.getElementById('challenge-streak').innerText = gameState.streak;
+            startTimer();
+        }
+
+        function checkFlag(btn, code) {
+            if (gameState.answered || gameState.failed) return;
+            
+            disableAll();
+            
+            if (code === gameState.target.code) {
+                btn.classList.add('correct');
+                gameState.correctCount++;
+                document.getElementById('challenge-feedback').innerHTML = getGameText('correct1');
+                document.getElementById('challenge-progress').innerHTML = '✅ ' + gameState.correctCount + '/3 correct';
+                document.getElementById('challenge-step-indicator').innerText = 'Step 2/3';
+                
+                setTimeout(function() {
+                    document.getElementById('challenge-step1').style.display = 'none';
+                    document.getElementById('challenge-step2').style.display = 'block';
+                    document.querySelector('#challenge-step2 .step-title').innerText = getGameText('stepMap');
+                    
+                    const mapContainer = document.getElementById('challenge-maps');
+                    const optsCount = getSetting('optionsCount', 4);
+                    mapContainer.className = 'map-options-grid';
+                    mapContainer.innerHTML = '';
+                    
+                    const mapOpts = getOptions(gameState.target, 4);
+                    mapOpts.forEach(opt => {
+                        const card = document.createElement('div');
+                        card.className = 'map-option-card';
+                        const img = document.createElement('img');
+                        img.src = getIsolatedMapUrl(opt.code);
+                        img.alt = 'Map';
+                        img.loading = 'lazy';
+                        card.appendChild(img);
+                        card.onclick = function() { checkMap(card, opt.code); };
+                        mapContainer.appendChild(card);
+                    });
+                }, 500);
+            } else {
+                gameState.failed = true;
+                gameState.answered = true;
+                btn.classList.add('wrong');
+                penalizeScore(30);
+                clearTimer();
+                
+                document.getElementById('challenge-feedback').innerHTML = getGameText('wrong1') + ' ❌ -30';
+                document.getElementById('challenge-progress').innerHTML = '❌ Challenge Failed';
+                document.getElementById('challenge-step-indicator').innerText = 'Failed';
+                gameState.streak = 0;
+                localStorage.setItem('geo_challenge_current_streak', 0);
+                document.getElementById('challenge-streak').innerText = gameState.streak;
+                document.getElementById('challenge-next').innerText = getGameText('next');
+                document.getElementById('challenge-next').style.display = 'inline-block';
+            }
+        }
+
+        function checkMap(card, code) {
+            if (gameState.answered || gameState.failed) return;
+            
+            const cards = document.querySelectorAll('#challenge-maps .map-option-card');
+            cards.forEach(c => c.style.pointerEvents = 'none');
+            
+            if (code === gameState.target.code) {
+                card.classList.add('correct');
+                gameState.correctCount++;
+                document.getElementById('challenge-feedback').innerHTML = getGameText('correct2');
+                document.getElementById('challenge-progress').innerHTML = '✅ ' + gameState.correctCount + '/3 correct';
+                document.getElementById('challenge-step-indicator').innerText = 'Step 3/3';
+                
+                setTimeout(function() {
+                    document.getElementById('challenge-step2').style.display = 'none';
+                    document.getElementById('challenge-step3').style.display = 'block';
+                    document.querySelector('#challenge-step3 .step-title').innerText = getGameText('stepBorder');
+                    
+                    const borderContainer = document.getElementById('challenge-borders');
+                    const optsCount = getSetting('optionsCount', 4);
+                    borderContainer.className = 'options-grid ' + (optsCount === 6 ? 'grid-6' : '');
+                    borderContainer.innerHTML = '';
+                    
+                    let neighbors = getNeighbors(gameState.target);
+                    let correctNeighbor;
+                    
+                    if (neighbors.length > 0) {
+                        correctNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    } else {
+                        correctNeighbor = getRandomCountry();
+                        while (correctNeighbor.code === gameState.target.code) {
+                            correctNeighbor = getRandomCountry();
+                        }
+                    }
+                    
+                    gameState.borderCorrect = correctNeighbor.code;
+                    
+                    let options = [correctNeighbor];
+                    let attempts = 0;
+                    while (options.length < optsCount && attempts < 100) {
+                        let r = getRandomCountry();
+                        if (r.code !== gameState.target.code && r.code !== correctNeighbor.code && !options.find(o => o.code === r.code)) {
+                            options.push(r);
+                        }
+                        attempts++;
+                    }
+                    options.sort(() => Math.random() - 0.5);
+                    
+                    options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = 'option-btn';
+                        btn.innerText = getCountryName(opt);
+                        btn.onclick = function() { checkBorder(btn, opt.code); };
+                        borderContainer.appendChild(btn);
+                    });
+                }, 500);
+            } else {
+                gameState.failed = true;
+                gameState.answered = true;
+                card.classList.add('wrong');
+                penalizeScore(30);
+                clearTimer();
+                
+                document.getElementById('challenge-feedback').innerHTML = getGameText('wrong2') + ' ❌ -30';
+                document.getElementById('challenge-progress').innerHTML = '❌ Challenge Failed';
+                document.getElementById('challenge-step-indicator').innerText = 'Failed';
+                gameState.streak = 0;
+                localStorage.setItem('geo_challenge_current_streak', 0);
+                document.getElementById('challenge-streak').innerText = gameState.streak;
+                document.getElementById('challenge-next').innerText = getGameText('next');
+                document.getElementById('challenge-next').style.display = 'inline-block';
+            }
+        }
+
+        function checkBorder(btn, code) {
+            if (gameState.answered || gameState.failed) return;
+            
+            disableAll();
+            
+            if (code === gameState.borderCorrect) {
+                btn.classList.add('correct');
+                gameState.correctCount++;
+                gameState.answered = true;
+                clearTimer();
+                
+                const multiplier = getDifficultyMultiplier();
+                const pts = Math.round(60 * multiplier);
+                addScore(pts);
+                
+                gameState.streak++;
+                if (updateBestStreak('challenge', gameState.streak)) {}
+                localStorage.setItem('geo_challenge_current_streak', gameState.streak);
+                
+                document.getElementById('challenge-feedback').innerHTML = getGameText('complete') + ' +' + pts;
+                document.getElementById('challenge-progress').innerHTML = '✅ ' + gameState.correctCount + '/3 correct';
+                document.getElementById('challenge-step-indicator').innerText = '🏆 Completed!';
+            } else {
+                gameState.failed = true;
+                gameState.answered = true;
+                btn.classList.add('wrong');
+                penalizeScore(30);
+                clearTimer();
+                
+                document.getElementById('challenge-feedback').innerHTML = getGameText('wrong3') + ' ❌ -30';
+                document.getElementById('challenge-progress').innerHTML = '❌ Challenge Failed';
+                document.getElementById('challenge-step-indicator').innerText = 'Failed';
+                gameState.streak = 0;
+                localStorage.setItem('geo_challenge_current_streak', 0);
+            }
+            
+            document.getElementById('challenge-streak').innerText = gameState.streak;
+            document.getElementById('challenge-next').innerText = getGameText('next');
+            document.getElementById('challenge-next').style.display = 'inline-block';
+        }
+
+        // ============================================
+        // SETTINGS CHANGE HANDLER
+        // ============================================
+        const originalApplySettingsChange = window.applySettingsChange;
+        if (originalApplySettingsChange) {
+            window.applySettingsChange = function() {
+                originalApplySettingsChange();
+                updateUI();
+            };
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function initialize() {
+            if (!allCountries || allCountries.length === 0) {
+                await loadCountries();
+            }
+            
+            updateUI();
+            initGame();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initialize();
+        });
+    </script>
+
+</body>
+</html>
